@@ -47,7 +47,7 @@ def closest_point_to(point, points):
     assert len(point) == 2
     return np.argmin((points[0] - point[0]) ** 2 + (points[1] - point[1]) ** 2)
 
-# Generate random fluid coordinates.
+# Generate random fluid coordinates normalised to the range min to max.
 
 fluid_x_coordinates = np.random.rand(particle_count) * (x_max - x_min) + x_min
 fluid_y_coordinates = np.random.rand(particle_count) * (y_max - y_min) + y_min
