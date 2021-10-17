@@ -1,3 +1,0 @@
-import math
-
-print("Hello!")
