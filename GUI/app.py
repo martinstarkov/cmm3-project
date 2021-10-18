@@ -1,19 +1,63 @@
 import tkinter as tk
-from tkinter import *
 import os
 from PIL import Image, ImageTk
-import sys
+import json
 
-class Redirect():
+class inputBox():
+    """This takes every variable type and creates a label and a text box for it. //
+    It also has methods to capture and store the data before running the simulation"""
+    def __init__(self, column, row, label, column_span = 1):
+        super(inputBox, self).__init__()
+        self.column = column
+        self.row = row
+        self.label = label
+        self.column_span = column_span
+
+    def create_input_box(self):
+        input_label = tk.Label(root, text = self.label)
+        input_label.grid(column = self.column, row = self.row)
+        self.input_box = tk.Entry(root)
+        self.input_box.grid(column = self.column + 1, row = self.row)
+
+    def get_input(self):
+        data = self.input_box.get()
+        return data
+        
+def init_text_boxes(list):
+    row_num = 3
+    for header in input_headers:
+        if (input_headers.index(header) == 0):
+            column_num = 0
+            row_num = 3
+        elif ((input_headers.index(header)+1) % 2 == 0):
+            column_num = 2
+            row_num = row_num
+        else:
+            column_num = 0
+            row_num += 1
+        box = inputBox(column_num, row_num, header)
+        list.append(box)
+        box.create_input_box()
+
+def store_data():
+    inputs = {
+        "maxTime": int(input_boxes[0].get_input()),
+        "timeStep": float(input_boxes[1].get_input()),
+        "numParticles": int(input_boxes[2].get_input()),
+        "diffusivity": float(input_boxes[3].get_input()),
+        "velocityField": bool(input_boxes[4].get_input()),
+        "simulationType": input_boxes[5].get_input(),
+    }
+    json_object = json.dumps(inputs)
+    with open("data.json", "a") as outfile:
+        outfile.write(json_object)
     
-    def __init__(self, widget):
-        self.widget = widget
-
-    def write(self, text):
-        self.widget.insert('end', text)
 
 def run_script():
 	script = os.system('python active_brownian.py')
+
+def clear_previous_inputs():
+    open('data.json', 'w').close()
 
 root = tk.Tk()
 
@@ -31,46 +75,18 @@ logo_label.grid(columnspan=2, column=1, row=0)
 instructions = tk.Label(root, text="Variable and Flexible Diffusion and Advection Simulation Tool. Change the Variables and Settings before running.")
 instructions.grid(columnspan=10, column=0, row=1)
 
-#input boxes
-timeVar = tk.Label(root, text="Max Time (s)")
-timeVar.grid(column=0, row=3)
-timeInput = tk.Entry(root)
-timeInput.grid(column=1, row=3)
-
-timeStep = tk.Label(root, text="Time Step/ dT (s)")
-timeStep.grid(column=2, row=3)
-timeStepInput = tk.Entry(root)
-timeStepInput.grid(column=3, row=3)
-
-numParticle = tk.Label(root, text="Number of Particles")
-numParticle.grid(column=0, row=4)
-numInput = tk.Entry(root)
-numInput.grid(column=1, row=4)
-
-diff = tk.Label(root, text="Diffusivity")
-diff.grid(column=2, row=4)
-diffInput = tk.Entry(root)
-diffInput.grid(column=3, row=4)
-
-numParticle = tk.Label(root, text="Velocity Field(Place File into Folder)")
-numParticle.grid(column=0, row=5)
-numInput = tk.Entry(root)
-numInput.grid(column=1, row=5)
-
-diff = tk.Label(root, text="Simulation Type: 1D/ 2D/ Live")
-diff.grid(column=2, row=5)
-diffInput = tk.Entry(root)
-diffInput.grid(column=3, row=5)
-
+input_headers = ["Max Time (s)", "Time Step/ dT (s)", "Number of Particles (Integer)", "Diffusivity (Float)", "Velocity Field (True/False)", "Simulation Type (1D/ 2D/ Live)" ]
 
 #buttons
-runScript = tk.Button(root, text="Run Simulation", padx=10, pady=10, fg="black", bg="pink", command=run_script)
-runScript.grid(columnspan=2, column=1, row=6, sticky = tk.W+tk.E)
+run_script = tk.Button(root, text="Run Simulation", padx=10, pady=10, fg="black", bg="pink", command=run_script)
+run_script.grid(columnspan=4, column=0, row=6, sticky = tk.W+tk.E)
+clear = tk.Button(root, text="Clear Previous Inputs", padx=10, pady=10, fg="black", bg="pink", command=clear_previous_inputs)
+clear.grid(columnspan=4, column=0, row=7, sticky = tk.W+tk.E)
+clear = tk.Button(root, text="Store New Inputs", padx=10, pady=10, fg="black", bg="pink", command=store_data)
+clear.grid(columnspan=4, column=0, row=8, sticky = tk.W+tk.E)
 
-text = tk.Text(root)
-text.grid(columnspan=2, column=1, row=7, sticky = tk.W+tk.E)
 
-old_stdout = sys.stdout    
-sys.stdout = Redirect(text)
-
-root.mainloop()
+if __name__ == '__main__':
+    input_boxes = []
+    init_text_boxes(input_boxes)
+    root.mainloop()
