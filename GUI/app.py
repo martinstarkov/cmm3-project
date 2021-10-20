@@ -3,7 +3,7 @@ import os
 from PIL import Image, ImageTk
 import json
 
-class inputBox():
+class InputBox():
     """This takes every variable type and creates a label and a text box for it. //
     It also has methods to capture and store the data before running the simulation"""
     def __init__(self, column, row, label, column_span = 1):
