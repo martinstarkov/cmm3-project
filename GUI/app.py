@@ -35,7 +35,7 @@ def init_text_boxes(list):
         else:
             column_num = 0
             row_num += 1
-        box = inputBox(column_num, row_num, header)
+        box = InputBox(column_num, row_num, header)
         list.append(box)
         box.create_input_box()
 
