@@ -41,12 +41,12 @@ def init_text_boxes(list):
 
 def store_data():
     inputs = {
-        "maxTime": int(input_boxes[0].get_input()),
-        "timeStep": float(input_boxes[1].get_input()),
-        "numParticles": int(input_boxes[2].get_input()),
+        "max_time": int(input_boxes[0].get_input()),
+        "time_step": float(input_boxes[1].get_input()),
+        "num_particles": int(input_boxes[2].get_input()),
         "diffusivity": float(input_boxes[3].get_input()),
-        "velocityField": bool(input_boxes[4].get_input()),
-        "simulationType": input_boxes[5].get_input(),
+        "velocity_field": bool(input_boxes[4].get_input()),
+        "simulation_type": input_boxes[5].get_input(),
     }
     json_object = json.dumps(inputs)
     with open("data.json", "a") as outfile:
