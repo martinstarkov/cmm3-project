@@ -1,1 +1,1 @@
-{"maxTime": 1, "timeStep": 0.02, "numParticles": 234, "diffusivity": 0.4, "velocityField": true, "simulationType": "2D"}
+{"max_time": 1, "time_step": 1.2, "num_particles": 123, "diffusivity": 32.3, "velocity_field": true, "simulation_type": "2D"}

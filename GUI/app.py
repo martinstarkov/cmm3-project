@@ -7,7 +7,6 @@ class InputBox():
     """This takes every variable type and creates a label and a text box for it. //
     It also has methods to capture and store the data before running the simulation"""
     def __init__(self, column, row, label, column_span = 1):
-        super(inputBox, self).__init__()
         self.column = column
         self.row = row
         self.label = label
@@ -49,7 +48,7 @@ def store_data():
         "simulation_type": input_boxes[5].get_input(),
     }
     json_object = json.dumps(inputs)
-    with open("data.json", "a") as outfile:
+    with open(os.path.join(os.path.dirname(__file__), 'data.json'), "a") as outfile:
         outfile.write(json_object)
     
 
@@ -57,15 +56,15 @@ def run_script():
 	script = os.system('python active_brownian.py')
 
 def clear_previous_inputs():
-    open('data.json', 'w').close()
+    open(os.path.join(os.path.dirname(__file__), 'data.json'), 'w').close()
 
 root = tk.Tk()
 
 canvas = tk.Canvas(root, height=500, width=800)
 canvas.grid(columnspan=10, rowspan=10)
 
-#logo
-logo = Image.open('logo.png')
+# logo
+logo = Image.open(os.path.join(os.path.dirname(__file__), 'logo.png'))
 logo = ImageTk.PhotoImage(logo)
 logo_label = tk.Label(image = logo)
 logo_label.image = logo
