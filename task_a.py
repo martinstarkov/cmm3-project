@@ -4,11 +4,14 @@ import matplotlib.colors
 import numpy as np
 import matplotlib.pyplot as plt
 
-# TODO: Modify this formula to match the one in the slides.
+# TODO: Make colors options for the user (in case of color blindness) by passing the dictionary accessors as function parameters.
+
 def diffuse(fluid_coordinates, velocities, dt):
+    # TODO: Modify this formula to match the one in the slides.
     fluid_coordinates += velocities * dt
 
 def boundary_conditions(fluid_coordinates, x_min, x_max, y_min, y_max):
+    # TODO: Remove these once there is a class with these variables.
     min = np.array([x_min, y_min])
     max = np.array([x_max, y_max])
     np.where(fluid_coordinates < min, 2 * min - fluid_coordinates, fluid_coordinates)
@@ -27,40 +30,36 @@ def animate(step, dt, axes, fluid_coordinates, x_min, x_max, y_min, y_max, spati
     scatter.set_offsets(fluid_coordinates)
     scatter.set_array(colors)
 
-def setup_plot(x_min, x_max, y_min, y_max):
+def setup_plot(fluid_coordinates, x_min, x_max, y_min, y_max, color_dictionary):
+    # TODO: Possibly add more axis / plot formatting here.
     figure, axes = plt.subplots()
     axes.set_xlim(x_min, x_max)
     axes.set_ylim(y_min, y_max)
-    return figure, axes
-
-def animated_particle_diffusion(steps, dt, x_min, x_max, y_min, y_max, fluid_coordinates, spatial_field, field_vectors, concentrations, color_dictionary):
-    figure, axes = setup_plot(x_min, x_max, y_min, y_max)
     cmap = matplotlib.colors.ListedColormap(color_dictionary.keys())
     scatter = axes.scatter(fluid_coordinates[:, 0], fluid_coordinates[:, 1])
     scatter.set_cmap(cmap)
     figure.colorbar(matplotlib.cm.ScalarMappable(cmap=cmap))
+    return figure, axes, scatter
+
+def animated_particle_diffusion(steps, dt, x_min, x_max, y_min, y_max, fluid_coordinates, spatial_field, field_vectors, concentrations, color_dictionary):
+    figure, axes, scatter = setup_plot(fluid_coordinates, x_min, x_max, y_min, y_max, color_dictionary)
     anim = animation.FuncAnimation(figure, animate, fargs=(dt, axes, fluid_coordinates, x_min, x_max, y_min, y_max, spatial_field, field_vectors, scatter, concentrations, color_dictionary), frames=steps, interval=1, repeat=False)    
     plt.show()
 
 def static_particle_diffusion(steps, dt, x_min, x_max, y_min, y_max, fluid_coordinates, spatial_field, field_vectors, concentrations, color_dictionary):
-    figure, axes = setup_plot(x_min, x_max, y_min, y_max)
     for i in range(steps):
         # TEMPORARY: skip simulating steps in order to test initial conditions.
         pass
         #simulate(fluid_coordinates, x_min, x_max, y_min, y_max, field_vectors, spatial_field, dt)
-    # TODO: Make colors options for the user (in case of color blindness).
+    figure, axes, scatter = setup_plot(fluid_coordinates, x_min, x_max, y_min, y_max, color_dictionary)
     colors = np.where(concentrations < 0.5, color_dictionary["red"], color_dictionary["blue"])
-    scatter = axes.scatter(fluid_coordinates[:, 0], fluid_coordinates[:, 1])
-    cmap = matplotlib.colors.ListedColormap(color_dictionary.keys())
-    scatter.set_cmap(cmap)
     scatter.set_array(colors)
-    figure.colorbar(matplotlib.cm.ScalarMappable(cmap=cmap))
     plt.show()
 
 def static_concentration_diffusion(steps, dt, x_min, x_max, y_min, y_max, fluid_coordinates, spatial_field, field_vectors, concentrations, color_dictionary):
-    figure, axes = setup_plot(x_min, x_max, y_min, y_max)
     for i in range(steps):
         simulate(fluid_coordinates, x_min, x_max, y_min, y_max, field_vectors, spatial_field, dt)
+    figure, axes, scatter = setup_plot(fluid_coordinates, x_min, x_max, y_min, y_max, color_dictionary)
 
 def generate_random_particles(N_p, x_min, x_max, y_min, y_max):
     coordinates = np.random.rand(N_p, 2) * [x_max - x_min, y_max - y_min] + [x_min, y_min]
@@ -119,5 +118,5 @@ fluid_coordinates, fluid_concentrations = generate_random_particles(N_p, x_min, 
 
 fluid_concentrations = add_rectangle(fluid_coordinates, fluid_concentrations, -1, -1, 1, 2, color_dictionary["blue"])
 
+static_particle_diffusion(steps, h, x_min, x_max, y_min, y_max, fluid_coordinates, spatial_field, field_vectors, fluid_concentrations, color_dictionary)
 animated_particle_diffusion(steps, h, x_min, x_max, y_min, y_max, fluid_coordinates, spatial_field, field_vectors, fluid_concentrations, color_dictionary)
-#static_particle_diffusion(steps, h, x_min, x_max, y_min, y_max, fluid_coordinates, spatial_field, field_vectors, fluid_concentrations, color_dictionary)
