@@ -1,44 +1,30 @@
-import tkinter
-from matplotlib import animation
+#---------Imports
+from numpy import arange, sin, pi
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.figure import Figure
+import tkinter as Tk
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.backends.backend_tkagg import (
-    FigureCanvasTkAgg, NavigationToolbar2Tk)
-# Implement the default Matplotlib key bindings.
-from matplotlib.backend_bases import key_press_handler
-from task_a import static_particle_diffusion, animated_particle_diffusion
+import matplotlib.animation as animation
+#---------End of imports
 
-root = tkinter.Tk()
-root.wm_title("Embedding in Tk")
+fig = plt.Figure()
 
-fig = plt.Figure(figsize=(5, 4), dpi=100)
+x = np.arange(0, 2*np.pi, 0.01)        # x-array
 
-canvas = FigureCanvasTkAgg(fig, master=root)  # A tk.DrawingArea.
-canvas.draw()
-canvas.get_tk_widget().pack(side=tkinter.TOP, fill=tkinter.BOTH, expand=1)
+def animate(i):
+    line.set_ydata(np.sin(x+i/10.0))  # update the data
+    return line,
 
-toolbar = NavigationToolbar2Tk(canvas, root)
-toolbar.update()
-canvas.get_tk_widget().pack(side=tkinter.TOP, fill=tkinter.BOTH, expand=1)
+root = Tk.Tk()
 
+label = Tk.Label(root,text="SHM Simulation").grid(column=0, row=0)
 
-def on_key_press(event):
-    print("you pressed {}".format(event.key))
-    key_press_handler(event, canvas, toolbar)
+canvas = FigureCanvasTkAgg(fig, master=root)
+canvas.get_tk_widget().grid(column=0,row=1)
 
+ax = fig.add_subplot(111)
+line, = ax.plot(x, np.sin(x))
+ani = animation.FuncAnimation(fig, animate, np.arange(1, 200), interval=25, blit=False)
 
-canvas.mpl_connect("key_press_event", on_key_press)
-
-
-def _quit():
-    root.quit()     # stops mainloop
-    root.destroy()  # this is necessary on Windows to prevent
-                    # Fatal Python Error: PyEval_RestoreThread: NULL tstate
-
-
-button = tkinter.Button(master=root, text="Quit", command=_quit)
-button.pack(side=tkinter.BOTTOM)
-
-tkinter.mainloop()
-# If you put root.destroy() here, it will cause an error if the window is
-# closed with the window manager.
+Tk.mainloop()
