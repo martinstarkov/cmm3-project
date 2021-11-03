@@ -5,11 +5,6 @@ import json
 import task_a
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.pyplot as plt
-from sys import platform as sys_pf
-
-if sys_pf == 'darwin':
-    import matplotlib
-    matplotlib.use("TkAgg")
 
 class InputBox():
     """This takes every variable type and creates a label and a text box for it. //
@@ -63,43 +58,56 @@ def store_data():
 def clear_previous_inputs():
     open(os.path.join(os.path.dirname(__file__), 'data.json'), 'w').close()
 
-root = tk.Tk()
+def back():
+    for widgets in root.winfo_children():
+      widgets.destroy()
+    place_logo_instructions()
+    place_buttons(run_script, clear_previous_inputs, store_data)
+    input_boxes = []
+    init_text_boxes(input_boxes)
+
+root = tk.Toplevel()
 
 def run_script():
     for widgets in root.winfo_children():
       widgets.destroy()
-    task_a.animated_particle_diffusion(task_a.steps, task_a.h, task_a.x_min, task_a.x_max, task_a.y_min, task_a.y_max, task_a.fluid_coordinates, task_a.spatial_field, task_a.field_vectors, task_a.fluid_concentrations, task_a.color_dictionary)
     label = tk.Label(root,text="SHM Simulation")
+    task_a.animated_particle_diffusion(task_a.steps, task_a.h, task_a.x_min, task_a.x_max, task_a.y_min, task_a.y_max, task_a.fluid_coordinates, task_a.spatial_field, task_a.field_vectors, task_a.fluid_concentrations, task_a.color_dictionary)
     label.grid(column=0, row=0)
     canvas = FigureCanvasTkAgg( task_a.animated_particle_diffusion.figure, master=root)
     canvas.get_tk_widget().grid(column=0,row=1)
+    back_btn = tk.Button(root, text="Back", padx=10, pady=10, fg="black", bg="pink", command=back)
+    back_btn.grid(columnspan=4, column=0, row=6, sticky = tk.W+tk.E)
 
 canvas = tk.Canvas(root, height=500, width=800)
 canvas.grid(columnspan=10, rowspan=10)
 
 # logo
-logo = Image.open(os.path.join(os.path.dirname(__file__), 'logo.png'))
-logo = ImageTk.PhotoImage(logo)
-logo_label = tk.Label(image = logo)
-logo_label.image = logo
-logo_label.grid(columnspan=2, column=1, row=0)
+def place_logo_instructions():
+    logo = Image.open(os.path.join(os.path.dirname(__file__), 'logo.png'))
+    logo = ImageTk.PhotoImage(logo)
+    logo_label = tk.Label(master = root, image = logo)
+    logo_label.image = logo
+    logo_label.grid(columnspan=2, column=1, row=0)
+    instructions = tk.Label(root, text="Variable and Flexible Diffusion and Advection Simulation Tool. Change the Variables and Settings before running.")
+    instructions.grid(columnspan=10, column=0, row=1)
 
-#instructions
-instructions = tk.Label(root, text="Variable and Flexible Diffusion and Advection Simulation Tool. Change the Variables and Settings before running.")
-instructions.grid(columnspan=10, column=0, row=1)
 
 input_headers = ["Max Time (s)", "Time Step/ dT (s)", "Number of Particles (Integer)", "Diffusivity (Float)", "Velocity Field (True/False)", "Simulation Type (1D/ 2D/ Live)" ]
 
 #buttons
-run_script = tk.Button(root, text="Run Simulation", padx=10, pady=10, fg="black", bg="pink", command=run_script)
-run_script.grid(columnspan=4, column=0, row=6, sticky = tk.W+tk.E)
-clear = tk.Button(root, text="Clear Previous Inputs", padx=10, pady=10, fg="black", bg="pink", command=clear_previous_inputs)
-clear.grid(columnspan=4, column=0, row=7, sticky = tk.W+tk.E)
-store = tk.Button(root, text="Store New Inputs", padx=10, pady=10, fg="black", bg="pink", command=store_data)
-store.grid(columnspan=4, column=0, row=8, sticky = tk.W+tk.E)
+def place_buttons(run, clear, store):
+    run_script = tk.Button(root, text="Run Simulation", padx=10, pady=10, fg="black", bg="pink", command=run)
+    run_script.grid(columnspan=4, column=0, row=6, sticky = tk.W+tk.E)
+    clear = tk.Button(root, text="Clear Previous Inputs", padx=10, pady=10, fg="black", bg="pink", command=clear)
+    clear.grid(columnspan=4, column=0, row=7, sticky = tk.W+tk.E)
+    store = tk.Button(root, text="Store New Inputs", padx=10, pady=10, fg="black", bg="pink", command=store)
+    store.grid(columnspan=4, column=0, row=8, sticky = tk.W+tk.E)
 
 
 if __name__ == '__main__':
+    place_logo_instructions()
+    place_buttons(run_script, clear_previous_inputs, store_data)
     input_boxes = []
     init_text_boxes(input_boxes)
     root.mainloop()
