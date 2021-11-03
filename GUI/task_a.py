@@ -3,6 +3,14 @@ from matplotlib import animation
 import matplotlib.colors
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import tkinter as Tk
+import os
+from sys import platform as sys_pf
+
+if sys_pf == 'darwin':
+    import matplotlib
+    matplotlib.use("TkAgg")
 
 # TODO: Make colors options for the user (in case of color blindness) by passing the dictionary accessors as function parameters.
 
@@ -42,9 +50,8 @@ def setup_plot(fluid_coordinates, x_min, x_max, y_min, y_max, color_dictionary):
     return figure, axes, scatter
 
 def animated_particle_diffusion(steps, dt, x_min, x_max, y_min, y_max, fluid_coordinates, spatial_field, field_vectors, concentrations, color_dictionary):
-    figure, axes, scatter = setup_plot(fluid_coordinates, x_min, x_max, y_min, y_max, color_dictionary)
-    anim = animation.FuncAnimation(figure, animate, fargs=(dt, axes, fluid_coordinates, x_min, x_max, y_min, y_max, spatial_field, field_vectors, scatter, concentrations, color_dictionary), frames=steps, interval=1, repeat=False)    
-    plt.show()
+    animated_particle_diffusion.figure, axes, scatter = setup_plot(fluid_coordinates, x_min, x_max, y_min, y_max, color_dictionary)
+    anim = animation.FuncAnimation( animated_particle_diffusion.figure, animate, fargs=(dt, axes, fluid_coordinates, x_min, x_max, y_min, y_max, spatial_field, field_vectors, scatter, concentrations, color_dictionary), frames=steps, interval=1, repeat=False)    
 
 def static_particle_diffusion(steps, dt, x_min, x_max, y_min, y_max, fluid_coordinates, spatial_field, field_vectors, concentrations, color_dictionary):
     for i in range(steps):
@@ -82,7 +89,7 @@ def add_circle(coordinates, concentrations, x, y, radius, value):
     distances = (coordinates[:, 0] - x) ** 2 + (coordinates[:, 1] - y) ** 2
     return np.where(distances < radius ** 2, value, concentrations)
 
-field_file = "velocityCMM3.dat"
+field_file = os.path.join(os.path.dirname(__file__), "velocityCMM3.dat")
 
 color_dictionary = {
     "red": 0,
@@ -118,5 +125,5 @@ fluid_coordinates, fluid_concentrations = generate_random_particles(N_p, x_min, 
 
 fluid_concentrations = add_rectangle(fluid_coordinates, fluid_concentrations, -1, -1, 1, 2, color_dictionary["blue"])
 
-static_particle_diffusion(steps, h, x_min, x_max, y_min, y_max, fluid_coordinates, spatial_field, field_vectors, fluid_concentrations, color_dictionary)
+# static_particle_diffusion(steps, h, x_min, x_max, y_min, y_max, fluid_coordinates, spatial_field, field_vectors, fluid_concentrations, color_dictionary)
 animated_particle_diffusion(steps, h, x_min, x_max, y_min, y_max, fluid_coordinates, spatial_field, field_vectors, fluid_concentrations, color_dictionary)

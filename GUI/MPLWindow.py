@@ -14,7 +14,7 @@ x = np.arange(0, 2*np.pi, 0.01)        # x-array
 
 def animate(i):
     line.set_ydata(np.sin(x+i/10.0))  # update the data
-    return line,
+    return line
 
 root = Tk.Tk()
 

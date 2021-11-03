@@ -2,6 +2,14 @@ import tkinter as tk
 import os
 from PIL import Image, ImageTk
 import json
+import task_a
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import matplotlib.pyplot as plt
+from sys import platform as sys_pf
+
+if sys_pf == 'darwin':
+    import matplotlib
+    matplotlib.use("TkAgg")
 
 class InputBox():
     """This takes every variable type and creates a label and a text box for it. //
@@ -52,13 +60,19 @@ def store_data():
         outfile.write(json_object)
     
 
-def run_script():
-	script = os.system('python active_brownian.py')
-
 def clear_previous_inputs():
     open(os.path.join(os.path.dirname(__file__), 'data.json'), 'w').close()
 
 root = tk.Tk()
+
+def run_script():
+    for widgets in root.winfo_children():
+      widgets.destroy()
+    task_a.animated_particle_diffusion(task_a.steps, task_a.h, task_a.x_min, task_a.x_max, task_a.y_min, task_a.y_max, task_a.fluid_coordinates, task_a.spatial_field, task_a.field_vectors, task_a.fluid_concentrations, task_a.color_dictionary)
+    label = tk.Label(root,text="SHM Simulation")
+    label.grid(column=0, row=0)
+    canvas = FigureCanvasTkAgg( task_a.animated_particle_diffusion.figure, master=root)
+    canvas.get_tk_widget().grid(column=0,row=1)
 
 canvas = tk.Canvas(root, height=500, width=800)
 canvas.grid(columnspan=10, rowspan=10)
@@ -81,8 +95,8 @@ run_script = tk.Button(root, text="Run Simulation", padx=10, pady=10, fg="black"
 run_script.grid(columnspan=4, column=0, row=6, sticky = tk.W+tk.E)
 clear = tk.Button(root, text="Clear Previous Inputs", padx=10, pady=10, fg="black", bg="pink", command=clear_previous_inputs)
 clear.grid(columnspan=4, column=0, row=7, sticky = tk.W+tk.E)
-clear = tk.Button(root, text="Store New Inputs", padx=10, pady=10, fg="black", bg="pink", command=store_data)
-clear.grid(columnspan=4, column=0, row=8, sticky = tk.W+tk.E)
+store = tk.Button(root, text="Store New Inputs", padx=10, pady=10, fg="black", bg="pink", command=store_data)
+store.grid(columnspan=4, column=0, row=8, sticky = tk.W+tk.E)
 
 
 if __name__ == '__main__':
