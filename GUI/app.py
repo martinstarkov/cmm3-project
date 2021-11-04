@@ -43,12 +43,12 @@ def init_text_boxes(list):
 
 def store_data():
     inputs = {
-        "max_time": int(input_boxes[0].get_input()),
-        "time_step": float(input_boxes[1].get_input()),
-        "num_particles": int(input_boxes[2].get_input()),
-        "diffusivity": float(input_boxes[3].get_input()),
-        "velocity_field": bool(input_boxes[4].get_input()),
-        "simulation_type": input_boxes[5].get_input(),
+        "max_time": int(main.input_boxes[0].get_input()),
+        "time_step": float(main.input_boxes[1].get_input()),
+        "num_particles": int(main.input_boxes[2].get_input()),
+        "diffusivity": float(main.input_boxes[3].get_input()),
+        "velocity_field": bool(main.input_boxes[4].get_input()),
+        "simulation_type": main.input_boxes[5].get_input(),
     }
     json_object = json.dumps(inputs)
     with open(os.path.join(os.path.dirname(__file__), 'data.json'), "a") as outfile:
@@ -61,14 +61,12 @@ def clear_previous_inputs():
 def back():
     for widgets in root.winfo_children():
       widgets.destroy()
-    place_logo_instructions()
-    place_buttons(run_script, clear_previous_inputs, store_data)
-    input_boxes = []
-    init_text_boxes(input_boxes)
+    main()
 
-root = tk.Toplevel()
+root = tk.Tk()
 
 def run_script():
+    #TODO Edit this to allow for multiple tasks
     for widgets in root.winfo_children():
       widgets.destroy()
     label = tk.Label(root,text="SHM Simulation")
@@ -104,10 +102,14 @@ def place_buttons(run, clear, store):
     store = tk.Button(root, text="Store New Inputs", padx=10, pady=10, fg="black", bg="pink", command=store)
     store.grid(columnspan=4, column=0, row=8, sticky = tk.W+tk.E)
 
-
-if __name__ == '__main__':
+def main():
+    canvas = tk.Canvas(root, height=500, width=800)
+    canvas.grid(columnspan=10, rowspan=10)
     place_logo_instructions()
     place_buttons(run_script, clear_previous_inputs, store_data)
-    input_boxes = []
-    init_text_boxes(input_boxes)
+    main.input_boxes = []
+    init_text_boxes(main.input_boxes)
     root.mainloop()
+
+if __name__ == '__main__':
+    main()

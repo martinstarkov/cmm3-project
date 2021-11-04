@@ -4,7 +4,6 @@ import matplotlib.colors
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-import tkinter as Tk
 import os
 from sys import platform as sys_pf
 
@@ -126,4 +125,4 @@ fluid_coordinates, fluid_concentrations = generate_random_particles(N_p, x_min, 
 fluid_concentrations = add_rectangle(fluid_coordinates, fluid_concentrations, -1, -1, 1, 2, color_dictionary["blue"])
 
 # static_particle_diffusion(steps, h, x_min, x_max, y_min, y_max, fluid_coordinates, spatial_field, field_vectors, fluid_concentrations, color_dictionary)
-animated_particle_diffusion(steps, h, x_min, x_max, y_min, y_max, fluid_coordinates, spatial_field, field_vectors, fluid_concentrations, color_dictionary)
+# animated_particle_diffusion(steps, h, x_min, x_max, y_min, y_max, fluid_coordinates, spatial_field, field_vectors, fluid_concentrations, color_dictionary)

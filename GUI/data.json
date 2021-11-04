@@ -1,1 +1,1 @@
-{"max_time": 1, "time_step": 1.2, "num_particles": 123, "diffusivity": 32.3, "velocity_field": true, "simulation_type": "2D"}
+{"max_time": 1, "time_step": 1.2, "num_particles": 123, "diffusivity": 32.3, "velocity_field": true, "simulation_type": "2D"}{"max_time": 1, "time_step": 2.0, "num_particles": 1, "diffusivity": 1.0, "velocity_field": true, "simulation_type": "2D"}{"max_time": 1, "time_step": 2.0, "num_particles": 1, "diffusivity": 1.0, "velocity_field": true, "simulation_type": "2D"}
