@@ -36,6 +36,7 @@ def animate(step, dt, axes, fluid_coordinates, x_min, x_max, y_min, y_max, spati
     axes.set_title("Time: " + str(round(step * dt, 3)))
     scatter.set_offsets(fluid_coordinates)
     scatter.set_array(colors)
+    return scatter
 
 def setup_plot(fluid_coordinates, x_min, x_max, y_min, y_max, color_dictionary):
     # TODO: Possibly add more axis / plot formatting here.
@@ -49,8 +50,8 @@ def setup_plot(fluid_coordinates, x_min, x_max, y_min, y_max, color_dictionary):
     return figure, axes, scatter
 
 def animated_particle_diffusion(steps, dt, x_min, x_max, y_min, y_max, fluid_coordinates, spatial_field, field_vectors, concentrations, color_dictionary):
-    animated_particle_diffusion.figure, axes, scatter = setup_plot(fluid_coordinates, x_min, x_max, y_min, y_max, color_dictionary)
-    anim = animation.FuncAnimation( animated_particle_diffusion.figure, animate, fargs=(dt, axes, fluid_coordinates, x_min, x_max, y_min, y_max, spatial_field, field_vectors, scatter, concentrations, color_dictionary), frames=steps, interval=1, repeat=False)    
+    animated_particle_diffusion.figure, axes, animated_particle_diffusion.scatter = setup_plot(fluid_coordinates, x_min, x_max, y_min, y_max, color_dictionary)
+    animated_particle_diffusion.anim = animation.FuncAnimation( animated_particle_diffusion.figure, animate, fargs=(dt, axes, fluid_coordinates, x_min, x_max, y_min, y_max, spatial_field, field_vectors, animated_particle_diffusion.scatter, concentrations, color_dictionary), frames=steps, interval=50, repeat=True, blit=False)    
 
 def static_particle_diffusion(steps, dt, x_min, x_max, y_min, y_max, fluid_coordinates, spatial_field, field_vectors, concentrations, color_dictionary):
     for i in range(steps):

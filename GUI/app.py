@@ -70,15 +70,12 @@ def run_script():
     for widgets in root.winfo_children():
       widgets.destroy()
     label = tk.Label(root,text="SHM Simulation")
-    task_a.animated_particle_diffusion(task_a.steps, task_a.h, task_a.x_min, task_a.x_max, task_a.y_min, task_a.y_max, task_a.fluid_coordinates, task_a.spatial_field, task_a.field_vectors, task_a.fluid_concentrations, task_a.color_dictionary)
     label.grid(column=0, row=0)
+    task_a.animated_particle_diffusion(task_a.steps, task_a.h, task_a.x_min, task_a.x_max, task_a.y_min, task_a.y_max, task_a.fluid_coordinates, task_a.spatial_field, task_a.field_vectors, task_a.fluid_concentrations, task_a.color_dictionary)
     canvas = FigureCanvasTkAgg( task_a.animated_particle_diffusion.figure, master=root)
     canvas.get_tk_widget().grid(column=0,row=1)
     back_btn = tk.Button(root, text="Back", padx=10, pady=10, fg="black", bg="pink", command=back)
     back_btn.grid(columnspan=4, column=0, row=6, sticky = tk.W+tk.E)
-
-canvas = tk.Canvas(root, height=500, width=800)
-canvas.grid(columnspan=10, rowspan=10)
 
 # logo
 def place_logo_instructions():
