@@ -7,7 +7,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import os
 from sys import platform as sys_pf
 import tkinter as tk
-import matplotlib.pyplot as plt
+
 
 if sys_pf == 'darwin':
     import matplotlib
