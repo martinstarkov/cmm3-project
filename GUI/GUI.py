@@ -6,6 +6,9 @@ import task_a
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.pyplot as plt
 
+global root
+root = tk.Tk()
+
 class InputBox():
     """This takes every variable type and creates a label and a text box for it. //
     It also has methods to capture and store the data before running the simulation"""
@@ -43,12 +46,12 @@ def init_text_boxes(list):
 
 def store_data():
     inputs = {
-        "max_time": int(main.input_boxes[0].get_input()),
-        "time_step": float(main.input_boxes[1].get_input()),
-        "num_particles": int(main.input_boxes[2].get_input()),
-        "diffusivity": float(main.input_boxes[3].get_input()),
-        "velocity_field": bool(main.input_boxes[4].get_input()),
-        "simulation_type": main.input_boxes[5].get_input(),
+        "max_time": int(input_boxes[0].get_input()),
+        "time_step": float(input_boxes[1].get_input()),
+        "num_particles": int(input_boxes[2].get_input()),
+        "diffusivity": float(input_boxes[3].get_input()),
+        "velocity_field": bool(input_boxes[4].get_input()),
+        "simulation_type": input_boxes[5].get_input(),
     }
     json_object = json.dumps(inputs)
     with open(os.path.join(os.path.dirname(__file__), 'data.json'), "a") as outfile:
@@ -61,37 +64,37 @@ def clear_previous_inputs():
 def back():
     for widgets in root.winfo_children():
       widgets.destroy()
-    main()
-
-root = tk.Tk()
+    canvas = tk.Canvas(root, height=500, width=800)
+    canvas.grid(columnspan=10, rowspan=10)
+    place_logo_instructions()
+    place_buttons(run_script, clear_previous_inputs, store_data)
+    input_boxes = []
+    init_text_boxes(input_boxes)
 
 def run_script():
     #TODO Edit this to allow for multiple tasks
     for widgets in root.winfo_children():
       widgets.destroy()
-    label = tk.Label(root,text="SHM Simulation")
-    label.grid(column=0, row=0)
-    task_a.animated_particle_diffusion(task_a.steps, task_a.h, task_a.x_min, task_a.x_max, task_a.y_min, task_a.y_max, task_a.fluid_coordinates, task_a.spatial_field, task_a.field_vectors, task_a.fluid_concentrations, task_a.color_dictionary)
-    canvas = FigureCanvasTkAgg( task_a.animated_particle_diffusion.figure, master=root)
-    canvas.get_tk_widget().grid(column=0,row=1)
-    back_btn = tk.Button(root, text="Back", padx=10, pady=10, fg="black", bg="pink", command=back)
-    back_btn.grid(columnspan=4, column=0, row=6, sticky = tk.W+tk.E)
+    task_a.animated_particle_diffusion(root, back, task_a.steps, task_a.h, task_a.x_min, task_a.x_max, task_a.y_min, task_a.y_max, task_a.fluid_coordinates, task_a.spatial_field, task_a.field_vectors, task_a.fluid_concentrations, task_a.color_dictionary)
+    # label = tk.Label(root,text="SHM Simulation").grid(column=0, row=0)
+    # back_btn = tk.Button(root, text="Back", padx=10, pady=10, fg="black", bg="pink", command=back)
+    # back_btn.grid(columnspan=4, column=0, row=6, sticky = tk.W+tk.E)
 
-# logo
 def place_logo_instructions():
+    # places logo and instructions for the gui
     logo = Image.open(os.path.join(os.path.dirname(__file__), 'logo.png'))
-    logo = ImageTk.PhotoImage(logo)
-    logo_label = tk.Label(master = root, image = logo)
+    logo = ImageTk.PhotoImage(logo, master = root)
+    logo_label = tk.Label(image = logo, master=root)
     logo_label.image = logo
     logo_label.grid(columnspan=2, column=1, row=0)
-    instructions = tk.Label(root, text="Variable and Flexible Diffusion and Advection Simulation Tool. Change the Variables and Settings before running.")
+    instructions = tk.Label(text="Variable and Flexible Diffusion and Advection Simulation Tool. Change the Variables and Settings before running.")
     instructions.grid(columnspan=10, column=0, row=1)
 
 
 input_headers = ["Max Time (s)", "Time Step/ dT (s)", "Number of Particles (Integer)", "Diffusivity (Float)", "Velocity Field (True/False)", "Simulation Type (1D/ 2D/ Live)" ]
 
-#buttons
 def place_buttons(run, clear, store):
+    # places buttons and grids them
     run_script = tk.Button(root, text="Run Simulation", padx=10, pady=10, fg="black", bg="pink", command=run)
     run_script.grid(columnspan=4, column=0, row=6, sticky = tk.W+tk.E)
     clear = tk.Button(root, text="Clear Previous Inputs", padx=10, pady=10, fg="black", bg="pink", command=clear)
@@ -99,14 +102,12 @@ def place_buttons(run, clear, store):
     store = tk.Button(root, text="Store New Inputs", padx=10, pady=10, fg="black", bg="pink", command=store)
     store.grid(columnspan=4, column=0, row=8, sticky = tk.W+tk.E)
 
-def main():
-    canvas = tk.Canvas(root, height=500, width=800)
-    canvas.grid(columnspan=10, rowspan=10)
-    place_logo_instructions()
-    place_buttons(run_script, clear_previous_inputs, store_data)
-    main.input_boxes = []
-    init_text_boxes(main.input_boxes)
-    root.mainloop()
 
-if __name__ == '__main__':
-    main()
+
+canvas = tk.Canvas(root, height=500, width=800)
+canvas.grid(columnspan=10, rowspan=10)
+place_logo_instructions()
+place_buttons(run_script, clear_previous_inputs, store_data)
+input_boxes = []
+init_text_boxes(input_boxes)
+root.mainloop()

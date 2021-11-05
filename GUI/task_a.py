@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import os
 from sys import platform as sys_pf
+import tkinter as tk
+import matplotlib.pyplot as plt
 
 if sys_pf == 'darwin':
     import matplotlib
@@ -36,7 +38,7 @@ def animate(step, dt, axes, fluid_coordinates, x_min, x_max, y_min, y_max, spati
     axes.set_title("Time: " + str(round(step * dt, 3)))
     scatter.set_offsets(fluid_coordinates)
     scatter.set_array(colors)
-    return scatter
+    return
 
 def setup_plot(fluid_coordinates, x_min, x_max, y_min, y_max, color_dictionary):
     # TODO: Possibly add more axis / plot formatting here.
@@ -49,9 +51,14 @@ def setup_plot(fluid_coordinates, x_min, x_max, y_min, y_max, color_dictionary):
     figure.colorbar(matplotlib.cm.ScalarMappable(cmap=cmap))
     return figure, axes, scatter
 
-def animated_particle_diffusion(steps, dt, x_min, x_max, y_min, y_max, fluid_coordinates, spatial_field, field_vectors, concentrations, color_dictionary):
+def animated_particle_diffusion(root, back, steps, dt, x_min, x_max, y_min, y_max, fluid_coordinates, spatial_field, field_vectors, concentrations, color_dictionary):
     animated_particle_diffusion.figure, axes, animated_particle_diffusion.scatter = setup_plot(fluid_coordinates, x_min, x_max, y_min, y_max, color_dictionary)
-    animated_particle_diffusion.anim = animation.FuncAnimation( animated_particle_diffusion.figure, animate, fargs=(dt, axes, fluid_coordinates, x_min, x_max, y_min, y_max, spatial_field, field_vectors, animated_particle_diffusion.scatter, concentrations, color_dictionary), frames=steps, interval=50, repeat=True, blit=False)    
+    canvas = FigureCanvasTkAgg(animated_particle_diffusion.figure, master=root)
+    canvas.get_tk_widget().grid(column=0,row=1)
+    label = tk.Label(root,text="SHM Simulation").grid(column=0, row=0)
+    back_btn = tk.Button(root, text="Back", padx=10, pady=10, fg="black", bg="pink",command=back)
+    back_btn.grid(columnspan=4, column=0, row=6, sticky = tk.W+tk.E)
+    animated_particle_diffusion.anim = animation.FuncAnimation( animated_particle_diffusion.figure, animate, fargs=(dt, axes, fluid_coordinates, x_min, x_max, y_min, y_max, spatial_field, field_vectors, animated_particle_diffusion.scatter, concentrations, color_dictionary), frames=steps, interval=1, repeat=False, blit=False)
 
 def static_particle_diffusion(steps, dt, x_min, x_max, y_min, y_max, fluid_coordinates, spatial_field, field_vectors, concentrations, color_dictionary):
     for i in range(steps):
@@ -125,5 +132,6 @@ fluid_coordinates, fluid_concentrations = generate_random_particles(N_p, x_min, 
 
 fluid_concentrations = add_rectangle(fluid_coordinates, fluid_concentrations, -1, -1, 1, 2, color_dictionary["blue"])
 
-# static_particle_diffusion(steps, h, x_min, x_max, y_min, y_max, fluid_coordinates, spatial_field, field_vectors, fluid_concentrations, color_dictionary)
-# animated_particle_diffusion(steps, h, x_min, x_max, y_min, y_max, fluid_coordinates, spatial_field, field_vectors, fluid_concentrations, color_dictionary)
+if __name__ == '__main__':
+    static_particle_diffusion(steps, h, x_min, x_max, y_min, y_max, fluid_coordinates, spatial_field, field_vectors, fluid_concentrations, color_dictionary)
+    animated_particle_diffusion(steps, h, x_min, x_max, y_min, y_max, fluid_coordinates, spatial_field, field_vectors, fluid_concentrations, color_dictionary)
