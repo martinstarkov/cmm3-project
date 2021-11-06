@@ -23,11 +23,18 @@ def simulate(fluid_coordinates, x_min, x_max, y_min, y_max, field_vectors, spati
     diffuse(fluid_coordinates, velocities, dt)
     boundary_conditions(fluid_coordinates, x_min, x_max, y_min, y_max)
 
-def animate(step, dt, axes, fluid_coordinates, x_min, x_max, y_min, y_max, spatial_field, field_vectors, scatter, particles):
+def animate_particle(step, dt, axes, fluid_coordinates, x_min, x_max, y_min, y_max, spatial_field, field_vectors, scatter, particles):
     simulate(fluid_coordinates, x_min, x_max, y_min, y_max, field_vectors, spatial_field, dt)
     axes.set_title("Time: " + str(round(step * dt, 3)))
     scatter.set_offsets(fluid_coordinates)
     scatter.set_array(particles)
+
+def animate_concentration(step, dt, axes, fluid_coordinates, x_min, x_max, y_min, y_max, spatial_field, field_vectors, heatmap, particles):
+    simulate(fluid_coordinates, x_min, x_max, y_min, y_max, field_vectors, spatial_field, dt)
+    concentration = get_concentration_field(N_x, N_y, x_min, x_max, y_min, y_max, fluid_coordinates, particles)
+    axes.set_title("Time: " + str(round(step * dt, 3)))
+    heatmap.set_array(concentration)
+
 
 def setup_plot(fluid_coordinates, x_min, x_max, y_min, y_max, color_dictionary):
     # TODO: Possibly add more axis / plot formatting here.
@@ -42,7 +49,7 @@ def setup_plot(fluid_coordinates, x_min, x_max, y_min, y_max, color_dictionary):
 
 def animated_particle_diffusion(steps, dt, x_min, x_max, y_min, y_max, fluid_coordinates, spatial_field, field_vectors, particles, color_dictionary):
     figure, axes, scatter = setup_plot(fluid_coordinates, x_min, x_max, y_min, y_max, color_dictionary)
-    anim = animation.FuncAnimation(figure, animate, fargs=(dt, axes, fluid_coordinates, x_min, x_max, y_min, y_max, spatial_field, field_vectors, scatter, particles), frames=steps, interval=1, repeat=False)    
+    anim = animation.FuncAnimation(figure, animate_particle, fargs=(dt, axes, fluid_coordinates, x_min, x_max, y_min, y_max, spatial_field, field_vectors, scatter, particles), frames=steps, interval=1, repeat=False)    
     plt.show()
 
 def static_particle_diffusion(steps, dt, x_min, x_max, y_min, y_max, fluid_coordinates, spatial_field, field_vectors, particles, color_dictionary):
@@ -54,10 +61,19 @@ def static_particle_diffusion(steps, dt, x_min, x_max, y_min, y_max, fluid_coord
     scatter.set_array(particles)
     plt.show()
 
-def static_concentration_diffusion(steps, dt, x_min, x_max, y_min, y_max, fluid_coordinates, spatial_field, field_vectors, particles, color_dictionary):
-    for i in range(steps):
-        simulate(fluid_coordinates, x_min, x_max, y_min, y_max, field_vectors, spatial_field, dt)
-    figure, axes, scatter = setup_plot(fluid_coordinates, x_min, x_max, y_min, y_max, color_dictionary)
+def animated_concentration_diffusion(steps, dt, x_min, x_max, y_min, y_max, fluid_coordinates, spatial_field, field_vectors, particles, color_dictionary):
+    figure, axes = plt.subplots()
+    #axes.set_xlim(x_min, x_max)
+    #axes.set_ylim(y_min, y_max)
+    cmap = matplotlib.colors.ListedColormap(color_dictionary.keys())
+    concentration = get_concentration_field(N_x, N_y, x_min, x_max, y_min, y_max, fluid_coordinates, particles)
+    print(concentration)
+    print(concentration.size)
+    heatmap = axes.imshow(concentration, animated=True)
+    heatmap.set_cmap(cmap)
+    figure.colorbar(matplotlib.cm.ScalarMappable(cmap=cmap))
+    anim = animation.FuncAnimation(figure, animate_particle, fargs=(dt, axes, fluid_coordinates, x_min, x_max, y_min, y_max, spatial_field, field_vectors, heatmap, particles), frames=steps, interval=1, repeat=False)    
+    plt.show()
 
 def generate_random_particles(N_p, x_min, x_max, y_min, y_max):
     coordinates = np.random.rand(N_p, 2) * [x_max - x_min, y_max - y_min] + [x_min, y_min]
@@ -71,8 +87,11 @@ def display_vector_field(coordinates, vectors):
     plt.quiver(coordinates[:, 0], coordinates[:, 1], vectors[:, 0], vectors[:, 1])
     plt.show()
 
-def get_concentration_field(N_x, N_y, coordinates, particles):
-    pass
+def get_concentration_field(N_x, N_y, x_min, x_max, y_min, y_max, coordinates, particles):
+    # Coordinates normalized to [0, 0] -> [1, 1] domain.
+    normalized = (coordinates - np.array([x_min, y_min])) / np.array([x_max - x_min, y_max - y_min])
+    # Convert domain to [0, 0] -> [N_x, N_y] integer domain.
+    cells = np.round(normalized * [N_x, N_y]).astype(int)
 
 def add_rectangle(coordinates, particles, bottom_left_x, bottom_left_y, width, height, value: int):
     bound_x = np.logical_and(coordinates[:, 0] >= bottom_left_x, coordinates[:, 0] <= bottom_left_x + width)
@@ -119,8 +138,24 @@ fluid_coordinates, fluid_particles = generate_random_particles(N_p, x_min, x_max
 
 fluid_particles = add_rectangle(fluid_coordinates, fluid_particles, -1, -1, 1, 2, color_dictionary["blue"])
 
-static_particle_diffusion(steps, h, x_min, x_max, y_min, y_max, fluid_coordinates, spatial_field, field_vectors, fluid_particles, color_dictionary)
+#print(get_concentration_field(N_x, N_y, x_min, x_max, y_min, y_max, fluid_coordinates, fluid_particles))
 
-animated_particle_diffusion(steps, h, x_min, x_max, y_min, y_max, fluid_coordinates, spatial_field, field_vectors, fluid_particles, color_dictionary)
+#static_particle_diffusion(steps, h, x_min, x_max, y_min, y_max, fluid_coordinates, spatial_field, field_vectors, fluid_particles, color_dictionary)
 
-# get_concentration_field(N_x, N_y, fluid_coordinates, fluid_particles)
+#animated_particle_diffusion(steps, h, x_min, x_max, y_min, y_max, fluid_coordinates, spatial_field, field_vectors, fluid_particles, color_dictionary)
+
+#animated_concentration_diffusion(steps, h, x_min, x_max, y_min, y_max, fluid_coordinates, spatial_field, field_vectors, fluid_particles, color_dictionary)
+
+cells = np.array([[0, 0], [0, 1], [0, 0], [0, 1], [0, 0], [2, 2]])
+particles = np.array([1, 1, 1, 0, 0, 1])
+unique, indexes, occurences, count = np.unique(cells, return_index=True, return_inverse=True, return_counts=True, axis=0)
+bin = np.bincount(occurences, particles) / count
+concentrations = np.zeros((3, 3))
+
+# TODO: Figure out how to turn this into numpy code
+for index in range(len(bin)):
+    coordinate = cells[indexes[index]]
+    concentrations[coordinate[1], coordinate[0]] = bin[index]
+
+print("new concentrations")
+print(concentrations)
