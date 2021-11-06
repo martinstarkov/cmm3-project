@@ -89,10 +89,11 @@ def get_concentration_field(N_x, N_y, x_min, x_max, y_min, y_max, coordinates, p
     # Coordinates normalized to [0, 0] -> [1, 1] domain.
     normalized = (coordinates - np.array([x_min, y_min])) / np.array([x_max - x_min, y_max - y_min])
     # Convert domain to [0, 0] -> [N_x, N_y] integer domain.
-    cells = np.round(normalized * [N_x, N_y]).astype(int)
+    # TODO: Consider going back to round here.
+    cells = np.floor(normalized * [N_x - 1, N_y - 1]).astype(int)
     unique, occurences, count = np.unique(cells, return_inverse=True, return_counts=True, axis=0)
     bin = np.bincount(occurences, particles) / count
-    concentrations = np.zeros((N_x + 1, N_y + 1))
+    concentrations = np.zeros((N_x, N_y))
     # TODO: Figure out how to turn this into numpy code.
     # TODO: Fix this crashing after a certain amount of time.
     for i, value in enumerate(bin):
