@@ -67,12 +67,10 @@ def animated_concentration_diffusion(steps, dt, x_min, x_max, y_min, y_max, flui
     #axes.set_ylim(y_min, y_max)
     cmap = matplotlib.colors.ListedColormap(color_dictionary.keys())
     concentration = get_concentration_field(N_x, N_y, x_min, x_max, y_min, y_max, fluid_coordinates, particles)
-    print(concentration)
-    print(concentration.size)
     heatmap = axes.imshow(concentration, animated=True)
     heatmap.set_cmap(cmap)
     figure.colorbar(matplotlib.cm.ScalarMappable(cmap=cmap))
-    anim = animation.FuncAnimation(figure, animate_particle, fargs=(dt, axes, fluid_coordinates, x_min, x_max, y_min, y_max, spatial_field, field_vectors, heatmap, particles), frames=steps, interval=1, repeat=False)    
+    anim = animation.FuncAnimation(figure, animate_concentration, fargs=(dt, axes, fluid_coordinates, x_min, x_max, y_min, y_max, spatial_field, field_vectors, heatmap, particles), frames=steps, interval=1, repeat=False)    
     plt.show()
 
 def generate_random_particles(N_p, x_min, x_max, y_min, y_max):
@@ -92,6 +90,14 @@ def get_concentration_field(N_x, N_y, x_min, x_max, y_min, y_max, coordinates, p
     normalized = (coordinates - np.array([x_min, y_min])) / np.array([x_max - x_min, y_max - y_min])
     # Convert domain to [0, 0] -> [N_x, N_y] integer domain.
     cells = np.round(normalized * [N_x, N_y]).astype(int)
+    unique, occurences, count = np.unique(cells, return_inverse=True, return_counts=True, axis=0)
+    bin = np.bincount(occurences, particles) / count
+    concentrations = np.zeros((N_x + 1, N_y + 1))
+    # TODO: Figure out how to turn this into numpy code.
+    # TODO: Fix this crashing after a certain amount of time.
+    for i, value in enumerate(bin):
+        concentrations[unique[i][1], unique[i][0]] = value
+    return concentrations
 
 def add_rectangle(coordinates, particles, bottom_left_x, bottom_left_y, width, height, value: int):
     bound_x = np.logical_and(coordinates[:, 0] >= bottom_left_x, coordinates[:, 0] <= bottom_left_x + width)
@@ -134,9 +140,9 @@ spatial_field = cKDTree(field_coordinates)
 
 fluid_coordinates, fluid_particles = generate_random_particles(N_p, x_min, x_max, y_min, y_max)
 
-#fluid_particles = add_circle(fluid_coordinates, fluid_particles, 0.0, 0.0, color_dictionary["blue"])
+fluid_particles = add_circle(fluid_coordinates, fluid_particles, 0.0, 0.0, 0.25, color_dictionary["blue"])
 
-fluid_particles = add_rectangle(fluid_coordinates, fluid_particles, -1, -1, 1, 2, color_dictionary["blue"])
+#fluid_particles = add_rectangle(fluid_coordinates, fluid_particles, -1, -1, 1, 2, color_dictionary["blue"])
 
 #print(get_concentration_field(N_x, N_y, x_min, x_max, y_min, y_max, fluid_coordinates, fluid_particles))
 
@@ -144,17 +150,17 @@ fluid_particles = add_rectangle(fluid_coordinates, fluid_particles, -1, -1, 1, 2
 
 #animated_particle_diffusion(steps, h, x_min, x_max, y_min, y_max, fluid_coordinates, spatial_field, field_vectors, fluid_particles, color_dictionary)
 
-#animated_concentration_diffusion(steps, h, x_min, x_max, y_min, y_max, fluid_coordinates, spatial_field, field_vectors, fluid_particles, color_dictionary)
+animated_concentration_diffusion(steps, h, x_min, x_max, y_min, y_max, fluid_coordinates, spatial_field, field_vectors, fluid_particles, color_dictionary)
 
-cells = np.array([[0, 0], [0, 1], [0, 0], [0, 1], [0, 0], [2, 2]])
-particles = np.array([1, 1, 1, 0, 0, 1])
-unique, indexes, occurences, count = np.unique(cells, return_index=True, return_inverse=True, return_counts=True, axis=0)
-bin = np.bincount(occurences, particles) / count
-concentrations = np.zeros((3, 3))
+# cells = np.array([[0, 0], [0, 1], [0, 0], [0, 1], [0, 0], [2, 2]])
+# particles = np.array([1, 1, 1, 0, 0, 1])
+# unique, indexes, occurences, count = np.unique(cells, return_index=True, return_inverse=True, return_counts=True, axis=0)
+# bin = np.bincount(occurences, particles) / count
+# concentrations = np.zeros((3, 3))
 
-# TODO: Figure out how to turn this into numpy code
-for i, value in enumerate(bin):
-    concentrations[unique[i][1], unique[i][0]] = value
+# # TODO: Figure out how to turn this into numpy code
+# for i, value in enumerate(bin):
+#     concentrations[unique[i][1], unique[i][0]] = value
 
-print("new concentrations")
-print(concentrations)
+# print("new concentrations")
+# print(concentrations)
