@@ -153,9 +153,8 @@ bin = np.bincount(occurences, particles) / count
 concentrations = np.zeros((3, 3))
 
 # TODO: Figure out how to turn this into numpy code
-for index in range(len(bin)):
-    coordinate = cells[indexes[index]]
-    concentrations[coordinate[1], coordinate[0]] = bin[index]
+for i, value in enumerate(bin):
+    concentrations[unique[i][1], unique[i][0]] = value
 
 print("new concentrations")
 print(concentrations)
