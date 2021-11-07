@@ -4,6 +4,9 @@ import matplotlib.colors
 import numpy as np
 import matplotlib.pyplot as plt
 
+# TEMPORARY:
+import time
+
 # TODO: Make colors options for the user (in case of color blindness) by passing the dictionary accessors as function parameters.
 
 def diffuse(fluid_coordinates, velocities, dt):
@@ -14,8 +17,8 @@ def boundary_conditions(fluid_coordinates, x_min, x_max, y_min, y_max):
     # TODO: Remove these once there is a class with these variables.
     min = np.array([x_min, y_min])
     max = np.array([x_max, y_max])
-    np.where(fluid_coordinates < min, 2 * min - fluid_coordinates, fluid_coordinates)
-    np.where(fluid_coordinates > max, 2 * max - fluid_coordinates, fluid_coordinates)
+    fluid_coordinates[:] = np.where(fluid_coordinates < min, 2 * min - fluid_coordinates, fluid_coordinates)
+    fluid_coordinates[:] = np.where(fluid_coordinates > max, 2 * max - fluid_coordinates, fluid_coordinates)
 
 def simulate(fluid_coordinates, x_min, x_max, y_min, y_max, field_vectors, spatial_field, dt):
     _, indexes = spatial_field.query(fluid_coordinates)
@@ -27,7 +30,6 @@ def animate_particle(step, dt, axes, fluid_coordinates, x_min, x_max, y_min, y_m
     simulate(fluid_coordinates, x_min, x_max, y_min, y_max, field_vectors, spatial_field, dt)
     axes.set_title("Time: " + str(round(step * dt, 3)))
     scatter.set_offsets(fluid_coordinates)
-    scatter.set_array(particles)
 
 def animate_concentration(step, dt, axes, fluid_coordinates, x_min, x_max, y_min, y_max, spatial_field, field_vectors, heatmap, particles):
     simulate(fluid_coordinates, x_min, x_max, y_min, y_max, field_vectors, spatial_field, dt)
@@ -35,44 +37,67 @@ def animate_concentration(step, dt, axes, fluid_coordinates, x_min, x_max, y_min
     axes.set_title("Time: " + str(round(step * dt, 3)))
     heatmap.set_array(concentration)
 
-
-def setup_plot(fluid_coordinates, x_min, x_max, y_min, y_max, color_dictionary):
+def setup_plot(fluid_coordinates, x_min, x_max, y_min, y_max, color_dictionary, particles):
     # TODO: Possibly add more axis / plot formatting here.
     figure, axes = plt.subplots()
     axes.set_xlim(x_min, x_max)
     axes.set_ylim(y_min, y_max)
-    cmap = matplotlib.colors.ListedColormap(color_dictionary.keys())
-    scatter = axes.scatter(fluid_coordinates[:, 0], fluid_coordinates[:, 1])
-    scatter.set_cmap(cmap)
+    cmap = matplotlib.colors.ListedColormap(color_dictionary.values())
     figure.colorbar(matplotlib.cm.ScalarMappable(cmap=cmap))
+    scatter = axes.scatter(fluid_coordinates[:, 0], fluid_coordinates[:, 1])
+    axes.set_title("Time: " + str(0))
+    scatter.set_array(particles)
+    scatter.set_cmap(cmap)
     return figure, axes, scatter
 
 def animated_particle_diffusion(steps, dt, x_min, x_max, y_min, y_max, fluid_coordinates, spatial_field, field_vectors, particles, color_dictionary):
-    figure, axes, scatter = setup_plot(fluid_coordinates, x_min, x_max, y_min, y_max, color_dictionary)
+    figure, axes, scatter = setup_plot(fluid_coordinates, x_min, x_max, y_min, y_max, color_dictionary, particles)
     anim = animation.FuncAnimation(figure, animate_particle, fargs=(dt, axes, fluid_coordinates, x_min, x_max, y_min, y_max, spatial_field, field_vectors, scatter, particles), frames=steps, interval=1, repeat=False)    
+    
     plt.show()
 
 def static_particle_diffusion(steps, dt, x_min, x_max, y_min, y_max, fluid_coordinates, spatial_field, field_vectors, particles, color_dictionary):
     for i in range(steps):
-        # TEMPORARY: skip simulating steps in order to test initial conditions.
-        pass
-        #simulate(fluid_coordinates, x_min, x_max, y_min, y_max, field_vectors, spatial_field, dt)
-    figure, axes, scatter = setup_plot(fluid_coordinates, x_min, x_max, y_min, y_max, color_dictionary)
-    scatter.set_array(particles)
+        simulate(fluid_coordinates, x_min, x_max, y_min, y_max, field_vectors, spatial_field, dt)
+    
+    figure, axes, scatter = setup_plot(fluid_coordinates, x_min, x_max, y_min, y_max, color_dictionary, particles)
+    
+    axes.set_title("Time: " + str(round((steps - 1) * dt, 3)))
+    
     plt.show()
 
 def animated_concentration_diffusion(steps, dt, x_min, x_max, y_min, y_max, fluid_coordinates, spatial_field, field_vectors, particles, color_dictionary):
     figure, axes = plt.subplots()
-    #axes.set_xlim(x_min, x_max)
-    #axes.set_ylim(y_min, y_max)
-    cmap = matplotlib.colors.ListedColormap(color_dictionary.keys())
+
+    axes.set_title("Time: " + str(0))
     concentration = get_concentration_field(N_x, N_y, x_min, x_max, y_min, y_max, fluid_coordinates, particles)
-    heatmap = axes.imshow(concentration, animated=True)
+    heatmap = axes.imshow(concentration, animated=True, extent=(x_min, x_max, y_min, y_max))
+    
+    cmap = matplotlib.colors.LinearSegmentedColormap.from_list("custom", list(color_dictionary.values()), N=256)
     heatmap.set_cmap(cmap)
     figure.colorbar(matplotlib.cm.ScalarMappable(cmap=cmap))
+    
     anim = animation.FuncAnimation(figure, animate_concentration, fargs=(dt, axes, fluid_coordinates, x_min, x_max, y_min, y_max, spatial_field, field_vectors, heatmap, particles), frames=steps, interval=1, repeat=False)    
-    plt.show()
+    
+    plt.show()   
 
+def static_concentration_diffusion(steps, dt, x_min, x_max, y_min, y_max, fluid_coordinates, spatial_field, field_vectors, particles, color_dictionary):
+    figure, axes = plt.subplots()
+    
+    for i in range(steps):
+        simulate(fluid_coordinates, x_min, x_max, y_min, y_max, field_vectors, spatial_field, dt)
+    
+    concentration = get_concentration_field(N_x, N_y, x_min, x_max, y_min, y_max, fluid_coordinates, particles)
+    heatmap = axes.imshow(concentration, extent=(x_min, x_max, y_min, y_max))
+    
+    axes.set_title("Time: " + str(round((steps - 1) * dt, 3)))
+    
+    cmap = matplotlib.colors.LinearSegmentedColormap.from_list("custom", list(color_dictionary.values()), N=256)
+    heatmap.set_cmap(cmap)
+    figure.colorbar(matplotlib.cm.ScalarMappable(cmap=cmap))
+    
+    plt.show()
+ 
 def generate_random_particles(N_p, x_min, x_max, y_min, y_max):
     coordinates = np.random.rand(N_p, 2) * [x_max - x_min, y_max - y_min] + [x_min, y_min]
     particles = np.zeros(N_p, dtype=int)
@@ -86,18 +111,14 @@ def display_vector_field(coordinates, vectors):
     plt.show()
 
 def get_concentration_field(N_x, N_y, x_min, x_max, y_min, y_max, coordinates, particles):
+    concentrations = np.zeros((N_x, N_y))
     # Coordinates normalized to [0, 0] -> [1, 1] domain.
     normalized = (coordinates - np.array([x_min, y_min])) / np.array([x_max - x_min, y_max - y_min])
-    # Convert domain to [0, 0] -> [N_x, N_y] integer domain.
-    # TODO: Consider going back to round here.
-    cells = np.floor(normalized * [N_x - 1, N_y - 1]).astype(int)
+    # Convert domain to [0, 0] -> [N_x - 1, N_y - 1] integer domain.
+    cells = np.round(normalized * [N_x - 1, N_y - 1]).astype(int)
     unique, occurences, count = np.unique(cells, return_inverse=True, return_counts=True, axis=0)
-    bin = np.bincount(occurences, particles) / count
-    concentrations = np.zeros((N_x, N_y))
-    # TODO: Figure out how to turn this into numpy code.
-    # TODO: Fix this crashing after a certain amount of time.
-    for i, value in enumerate(bin):
-        concentrations[unique[i][1], unique[i][0]] = value
+    weights = np.bincount(occurences, particles) / count
+    concentrations[unique[:, 1], unique[:, 0]] = weights
     return concentrations
 
 def add_rectangle(coordinates, particles, bottom_left_x, bottom_left_y, width, height, value: int):
@@ -111,9 +132,13 @@ def add_circle(coordinates, particles, x, y, radius, value: int):
 
 field_file = "velocityCMM3.dat"
 
+def get_value(color_dictionary, color):
+    return list(color_dictionary.keys()).index(color)
+
+# 0 is red, 1 is blue
 color_dictionary = {
-    "red": 0,
-    "blue": 1
+    "red": (1, 0, 0),
+    "blue": (0, 0, 1)
 }
 
 # Domain size.
@@ -122,16 +147,16 @@ x_max = 1
 y_min = -1
 y_max = 1
 
-N_p = 5000 # Number of particles.
+N_p = 65000 # Number of particles.
 D = 0.01 # Diffusivity.
 
 # Number of points used to reconstruct the Eulerian field.
-N_x = 64
-N_y = 64
+N_x = 128
+N_y = 128
 
 t_max = 1.0 # Total simulation time.
 h = 0.01 # Time step.
-steps = int(t_max / h)
+steps = int(t_max / h) + 1
 
 # Read vector field data from file.
 field_coordinates, field_vectors = read_data_file(field_file, [0, 1], [2, 3])
@@ -141,27 +166,8 @@ spatial_field = cKDTree(field_coordinates)
 
 fluid_coordinates, fluid_particles = generate_random_particles(N_p, x_min, x_max, y_min, y_max)
 
-fluid_particles = add_circle(fluid_coordinates, fluid_particles, 0.0, 0.0, 0.25, color_dictionary["blue"])
+#fluid_particles = add_circle(fluid_coordinates, fluid_particles, 0.0, 0.0, 0.25, get_value(color_dictionary, "blue"))
 
-#fluid_particles = add_rectangle(fluid_coordinates, fluid_particles, -1, -1, 1, 2, color_dictionary["blue"])
+fluid_particles = add_rectangle(fluid_coordinates, fluid_particles, -1, -1, 1, 2, get_value(color_dictionary, "blue"))
 
-#print(get_concentration_field(N_x, N_y, x_min, x_max, y_min, y_max, fluid_coordinates, fluid_particles))
-
-#static_particle_diffusion(steps, h, x_min, x_max, y_min, y_max, fluid_coordinates, spatial_field, field_vectors, fluid_particles, color_dictionary)
-
-#animated_particle_diffusion(steps, h, x_min, x_max, y_min, y_max, fluid_coordinates, spatial_field, field_vectors, fluid_particles, color_dictionary)
-
-animated_concentration_diffusion(steps, h, x_min, x_max, y_min, y_max, fluid_coordinates, spatial_field, field_vectors, fluid_particles, color_dictionary)
-
-# cells = np.array([[0, 0], [0, 1], [0, 0], [0, 1], [0, 0], [2, 2]])
-# particles = np.array([1, 1, 1, 0, 0, 1])
-# unique, indexes, occurences, count = np.unique(cells, return_index=True, return_inverse=True, return_counts=True, axis=0)
-# bin = np.bincount(occurences, particles) / count
-# concentrations = np.zeros((3, 3))
-
-# # TODO: Figure out how to turn this into numpy code
-# for i, value in enumerate(bin):
-#     concentrations[unique[i][1], unique[i][0]] = value
-
-# print("new concentrations")
-# print(concentrations)
+animated_particle_diffusion(steps, h, x_min, x_max, y_min, y_max, fluid_coordinates, spatial_field, field_vectors, fluid_particles, color_dictionary)
