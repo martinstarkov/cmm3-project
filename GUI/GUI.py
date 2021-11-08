@@ -3,8 +3,6 @@ import os
 from PIL import Image, ImageTk
 import json
 import task_a
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-import matplotlib.pyplot as plt
 import input_boxes
 
 global root
@@ -143,6 +141,7 @@ def place_logo():
 
 
 def main(root):
+    # Generates the landing page.
     canvas = tk.Canvas(root, height=500, width=900)
     canvas.grid(columnspan=10, rowspan=10)
     place_logo()
