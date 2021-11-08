@@ -7,6 +7,8 @@ import input_boxes
 
 global root
 root = tk.Tk()
+
+# Global variables for toggle switch
 switch_is_on = True
 on = ImageTk.PhotoImage(file = os.path.join(os.path.dirname(__file__), "on.png"))
 off = ImageTk.PhotoImage(file = os.path.join(os.path.dirname(__file__), "off.png"))
@@ -53,7 +55,7 @@ class InputBox():
             return data
 
 class Task():
-    """Manages buttons and functions managing the buttons"""
+    """Manages each tasks landing page and inputs."""
     def __init__(self, task, row, column_span = 10):
         self.task = task
         self.row = row
@@ -85,11 +87,12 @@ class Task():
             label = input.label
             dict_copy[label] = value
         dict_copy['id'] = self.label
+        # Storing inputs in JSON File.
         with open(os.path.join(os.path.dirname(__file__), 'data.json'), 'w') as convert_file:
             convert_file.write(json.dumps(dict_copy))
         for widgets in root.winfo_children():
             widgets.destroy()
-            #TODO write inputs to file
+        #TODO replace this with each tasks function.
         task_a.animated_particle_diffusion(root, back, task_a.steps, task_a.h, task_a.x_min, task_a.x_max, task_a.y_min, task_a.y_max, task_a.fluid_coordinates, task_a.spatial_field, task_a.field_vectors, task_a.fluid_concentrations, task_a.color_dictionary)
     
     def place_button(self):
