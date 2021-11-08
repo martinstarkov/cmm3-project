@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter.filedialog import askopenfile 
 import os
 from PIL import Image, ImageTk
 import json
@@ -29,9 +30,13 @@ class InputBox():
         if switch_is_on:
             self.toggle.config(image = off)
             switch_is_on = False
+            self.browse.destroy()
         else:
             self.toggle.config(image = on)
             switch_is_on = True
+            self.browse = tk.Button(root, text ='Open File', command = lambda:open_file()) 
+            self.browse.grid(columnspan=1, column=self.column + 2, row = self.row)
+            
 
     def place(self):
         # places the button in the GUI window
@@ -39,7 +44,9 @@ class InputBox():
         input_label.grid(column = self.column, row = self.row)
         if self.toggle == True:
             self.toggle = tk.Button(root, image = on, bd = 0, command = self.switch)
-            self.toggle.grid(columnspan=2, column=self.column + 1, row = self.row)
+            self.toggle.grid(columnspan=1, column=self.column + 1, row = self.row)
+            self.browse = tk.Button(root, text ='Open File', command = lambda:open_file()) 
+            self.browse.grid(columnspan=1, column=self.column + 2, row = self.row)
         else:
             self.input_box = tk.Entry(root)
             self.input_box.grid(column = self.column + 1, row = self.row)
@@ -133,6 +140,14 @@ def back():
       widgets.destroy()
     main(root)
 
+def open_file(): 
+    file = askopenfile(mode ='r', filetypes =[('velocity field', '*.dat')]) 
+    if file is not None:
+        success_text = tk.Label(text="File Loaded!")
+        success_text.grid(columnspan=10, column=7, row=5)
+        content = file.read() 
+        with open('velocityfield.dat','w') as data: 
+            data.write(content)
  
 def place_logo():
     # places logo and instructions for the gui
