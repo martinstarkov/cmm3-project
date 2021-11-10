@@ -45,7 +45,7 @@ class Simulation(object):
         self.axes.set_title("Time: " + str(0))
         self.scatter.set_array(self.particles)
         
-    def __diffuse(self, velocities):
+    def __lagrangian(self, velocities):
         # TODO: Check  that this formula matches the one in the slides.
         self.coordinates += velocities * self.dt + \
                             math.sqrt(2 * self.diffusivity * self.dt) * \
@@ -55,22 +55,34 @@ class Simulation(object):
         self.coordinates[:] = np.where(self.coordinates < self.min, 2 * self.min - self.coordinates, self.coordinates)
         self.coordinates[:] = np.where(self.coordinates > self.max, 2 * self.max - self.coordinates, self.coordinates)
         
-    def __simulate(self):
+    def __update(self):
         if self.velocity_coordinates is not None and self.velocity_vectors is not None:
             _, indexes = self.spatial_velocity.query(self.coordinates)
             velocities = self.velocity_vectors[indexes]
-            self.__diffuse(velocities)
+            self.__lagrangian(velocities)
         else:
-            self.__diffuse(0)
+            self.__lagrangian(0)
         self.__boundary_conditions()
-        
-    def __update(self, step):
-        self.__simulate()
-        self.axes.set_title("Time: " + str(round(step * self.dt, 3)))
     
-    def __get_concentrations(self):
+    def __particle_animation(self, step: int):
+        self.__update()
+        self.axes.set_title("Time: " + str(round(step * self.dt, 3)))
+        self.scatter.set_offsets(self.coordinates)
+
+    def __concentration_animation(self, step: int):
+        self.__update()
+        self.axes.set_title("Time: " + str(round(step * self.dt, 3)))
+        self.calculate_concentrations()
+        self.heatmap.set_array(self.concentrations)
+
+    def simulate(self):
+        for step in range(self.steps):
+            print("Simulation time: " + str(round(step * self.dt, 3)))
+            self.__update()
+            
+    def calculate_concentrations(self):
         # Create flattened concentration array.
-        concentrations = np.zeros(np.prod(self.cell_size))
+        self.concentrations = np.zeros(np.prod(self.cell_size))
         # Coordinates normalized to [0, 0] -> [1, 1] domain.
         normalized = (self.coordinates - self.min) / (self.max - self.min)
         # Convert domain to [0, 0] -> [N_x - 1, N_y - 1] integer domain.
@@ -79,59 +91,38 @@ class Simulation(object):
         weights = np.bincount(occurences, self.particles) / count
         # Flattened index in unique array.
         indexes = unique[:, X] + unique[:, Y] * self.cell_size[Y]
-        concentrations[indexes] = weights
-        return concentrations.reshape(np.flip(self.cell_size))
-    
-    def __particle_animation(self, step):
-        self.__update(step)
-        self.scatter.set_offsets(self.coordinates)
-
-    def __concentration_animation(self, step):
-        self.__update(step)
-        self.heatmap.set_array(self.__get_concentrations())
-
+        self.concentrations[indexes] = weights
+        self.concentrations = self.concentrations.reshape(np.flip(self.cell_size))
+        
     def animated_particle(self):
         self.__setup_plot()
         anim = animation.FuncAnimation(self.figure, self.__particle_animation, frames=self.steps, interval=1, repeat=False)    
         plt.show()
-
+        
     def static_particle(self):
-        for i in range(self.steps):
-            print("Simulation time: " + str(round(i * self.dt, 3)))
-            self.__simulate()
+        self.simulate()
             
         self.__setup_plot()
         self.axes.set_title("Time: " + str(round((self.steps - 1) * self.dt, 3)))
         plt.show()
-
-    def animated_concentration(self):
+        
+    def __setup_concentration(self, animated: bool):
         self.figure, self.axes = plt.subplots()
-        
-        self.axes.set_title("Time: " + str(0))
-        concentration = self.__get_concentrations()
-        self.heatmap = self.axes.imshow(concentration, animated=True, extent=(self.min[X], self.max[X], self.min[Y], self.max[Y]))
-        
+        self.calculate_concentrations()
+        self.heatmap = self.axes.imshow(self.concentrations, animated=animated, extent=(self.min[X], self.max[X], self.min[Y], self.max[Y]))
         self.heatmap.set_cmap(self.cmap)
         self.figure.colorbar(matplotlib.cm.ScalarMappable(cmap=self.cmap))
-        
+
+    def animated_concentration(self):
+        self.__setup_concentration(True)
+        self.axes.set_title("Time: " + str(0))
         anim = animation.FuncAnimation(self.figure, self.__concentration_animation, frames=self.steps, interval=1, repeat=False)    
         plt.show()   
 
     def static_concentration(self):
-        self.figure, self.axes = plt.subplots()
-        
-        for i in range(self.steps):
-            print("Simulation time: " + str(round(i * self.dt, 3)))
-            self.__simulate()
-        
-        concentration = self.__get_concentrations()
-        self.heatmap = self.axes.imshow(concentration, extent=(self.min[X], self.max[X], self.min[Y], self.max[Y]))
-        
+        self.simulate()
+        self.__setup_concentration(False)
         self.axes.set_title("Time: " + str(round((self.steps - 1) * self.dt, 3)))
-
-        self.heatmap.set_cmap(self.cmap)
-        self.figure.colorbar(matplotlib.cm.ScalarMappable(cmap=self.cmap))
-        
         plt.show()
 
     def display_vector_field(self):
@@ -150,7 +141,6 @@ class Simulation(object):
         self.particles = np.where(distances < radius ** 2, value, self.particles)
 
 
-
 def read_data_file(file, *args):
     return [np.loadtxt(file, usecols=tuple(c)) for c in args]
 
@@ -161,17 +151,25 @@ color_dictionary = {
 }
 
 # Read vector field data from file.
-velocity_coordinates, velocity_vectors = read_data_file("velocityCMM3.dat", [0, 1], [2, 3])
+#velocity_coordinates, velocity_vectors = read_data_file("velocityCMM3.dat", [0, 1], [2, 3])
+
+# Read reference solution from file.
+reference_coordinates, reference_concentration = read_data_file("reference_solution_1D.dat", [0], [1])
 
 #cmap = matplotlib.colors.ListedColormap(color_dictionary.values())
 cmap = matplotlib.colors.LinearSegmentedColormap.from_list("gradient", list(color_dictionary.values()), 256)
 
-sim = Simulation(0.01, 0.2, -1, 1, -1, 1, 65536, 64, 64, 0.01, cmap, velocity_coordinates, velocity_vectors)
+concentrations = []
 
-#sim.display_vector_field()
+for dt in np.linspace(0.01, 0.03, 3):
+    run = Simulation(dt, 0.2, -1, 1, -1, 1, 65536, 64, 1, 0.1, cmap)
+    run.add_rectangle([-1, -1], [1, 2], 1)
+    run.simulate()
+    run.calculate_concentrations()
+    concentrations.append(run.concentrations)
 
-#sim.add_circle([0.0, 0.0], 0.25, 1)
+#print(reference_coordinates)
+#print(reference_concentration)
 
-sim.add_rectangle([-1, -1], [1, 2], 1)
-
-sim.animated_concentration()
+for concentration in concentrations:
+    print(concentrations)
