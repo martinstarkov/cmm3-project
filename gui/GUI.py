@@ -5,6 +5,8 @@ from PIL import Image, ImageTk
 import json
 import task_a
 import input_boxes
+import pathlib
+
 
 global root
 root = tk.Tk()
@@ -94,6 +96,7 @@ class Task():
             label = input.label
             dict_copy[label] = value
         dict_copy['id'] = self.label
+        dict_copy["velocity_field_path"] = str(file_locator())
         # Storing inputs in JSON File.
         with open(os.path.join(os.path.dirname(__file__), 'data.json'), 'w') as convert_file:
             convert_file.write(json.dumps(dict_copy))
@@ -148,7 +151,14 @@ def open_file():
         content = file.read() 
         with open('velocityfield.dat','w') as data: 
             data.write(content)
- 
+            
+    """The file_locator function locates the path to the data output and assigns it
+        to a global variable known as data_path"""
+        
+def file_locator():
+    file_path = pathlib.Path("velocityfield.dat").parent.absolute()
+    return file_path
+
 def place_logo():
     # places logo and instructions for the gui
     logo = Image.open(os.path.join(os.path.dirname(__file__), 'logo.png'))
