@@ -3,16 +3,15 @@ from tkinter.filedialog import askopenfile
 import os
 from PIL import Image, ImageTk
 import json
-import task_a
 import pathlib
 
 global root
 root = tk.Tk()
 
 # Global variables for toggle switch
-switch_is_on = True
 on = ImageTk.PhotoImage(file = os.path.join(os.path.dirname(__file__), "on.png"))
 off = ImageTk.PhotoImage(file = os.path.join(os.path.dirname(__file__), "off.png"))
+switch_is_on = True
 
 class InputBox():
     """This takes every variable type and creates a label and a text box for it. //
@@ -31,19 +30,21 @@ class InputBox():
         if switch_is_on:
             self.toggle.config(image = off)
             switch_is_on = False
-            self.browse.destroy()
+            if self.label == 'Velocity Field':
+                self.browse.destroy()
         else:
             self.toggle.config(image = on)
             switch_is_on = True
-            self.browse = tk.Button(root, text ='Open File', command = lambda:self.open_file()) 
-            self.browse.grid(columnspan=1, column=self.column + 2, row = self.row)
+            if self.label == 'Velocity Field':
+                self.browse = tk.Button(root, text ='Open File', command = lambda:self.open_file()) 
+                self.browse.grid(columnspan=1, column=self.column + 2, row = self.row)
     
     def open_file(self): 
-        file = askopenfile(mode ='r', filetypes =[('velocity field', '*.dat')]).name
-        if file is not None:
-            self.file_path = str(pathlib.PurePath(str(file)))
+        self.file = askopenfile(mode ='r', filetypes =[('velocity field', '*.dat')]).name
+        if self.file is not None:
+            self.file_path = str(pathlib.PurePath(str(self.file)))
             success_text = tk.Label(text="File Loaded!")
-            success_text.grid(columnspan=10, column=7, row=5)
+            success_text.grid(columnspan=10, column=self.column + 3, row= self.row)
             
     def place(self):
         # places the button in the GUI window
@@ -52,8 +53,9 @@ class InputBox():
         if self.toggle:
             self.toggle = tk.Button(root, image = on, bd = 0, command = self.switch)
             self.toggle.grid(columnspan=1, column=self.column + 1, row = self.row)
-            self.browse = tk.Button(root, text ='Open File', command = lambda:self.open_file()) 
-            self.browse.grid(columnspan=1, column=self.column + 2, row = self.row)
+            if self.label == 'Velocity Field':
+                self.browse = tk.Button(root, text ='Open File', command = lambda:self.open_file()) 
+                self.browse.grid(columnspan=1, column=self.column + 2, row = self.row)
         else:
             self.input_box = tk.Entry(root)
             self.input_box.grid(column = self.column + 1, row = self.row)
@@ -104,11 +106,12 @@ class Task():
             value = input.get_input()
             label = input.label
             dict[label][2] = value
-        if switch_is_on:
-            for input_box in self.inputs:
-                if input_box.toggle:
-                    dict['File Path'] = input_box.file_path
-                    break
+        for input_box in self.inputs:
+            if input_box.label == 'Velocity Field' and input_box.file is not None:
+                print('working')
+                dict['Velocity Field'][2] = True
+                dict['File Path'][2] = input_box.file_path
+                break
         # Storing inputs in JSON File.
         with open(os.path.join(os.path.dirname(__file__), 'input_boxes.json')) as json_file:
             dictionary = json.load(json_file)
@@ -118,7 +121,6 @@ class Task():
         for widgets in root.winfo_children():
             widgets.destroy()
         #TODO replace this with each tasks function.
-        task_a.animated_particle_diffusion(root, back, task_a.steps, task_a.h, task_a.x_min, task_a.x_max, task_a.y_min, task_a.y_max, task_a.fluid_coordinates, task_a.spatial_field, task_a.field_vectors, task_a.fluid_concentrations, task_a.color_dictionary)
     
     def place_button(self):
         #Places the task button on the main landing page

@@ -10,7 +10,12 @@
             0.1,
             2.0
         ],
-        "Velocity field": [
+        "Animated?": [
+            "toggle",
+            true,
+            false
+        ],
+        "Velocity Field": [
             "toggle",
             true,
             true
@@ -18,14 +23,18 @@
         "Diffusivity": [
             "float",
             0.1,
-            34.0
+            0.1
         ],
         "Number of Particles": [
             "integer",
             65000,
-            54
+            12445
         ],
-        "File Path": "/Users/fredzikry/Documents/GitHub/cmm3-project/gui/velocityCMM3.dat"
+        "File Path": [
+            "string",
+            "/Users/fredzikry/Documents/GitHub/cmm3-project/velocityCMM3.dat",
+            "/Users/fredzikry/Documents/GitHub/cmm3-project/velocityCMM3.dat"
+        ]
     },
     "Task B": {
         "Time (s)": [
