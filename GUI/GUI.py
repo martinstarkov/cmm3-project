@@ -5,6 +5,7 @@ from PIL import Image, ImageTk
 import json
 import task_a
 import input_boxes
+import pathlib
 
 global root
 root = tk.Tk()
@@ -34,10 +35,16 @@ class InputBox():
         else:
             self.toggle.config(image = on)
             switch_is_on = True
-            self.browse = tk.Button(root, text ='Open File', command = lambda:open_file()) 
+            self.browse = tk.Button(root, text ='Open File', command = lambda:self.open_file()) 
             self.browse.grid(columnspan=1, column=self.column + 2, row = self.row)
+    
+    def open_file(self): 
+        file = askopenfile(mode ='r', filetypes =[('velocity field', '*.dat')]).name
+        if file is not None:
+            self.file_path = str(pathlib.PurePath(str(file)))
+            success_text = tk.Label(text="File Loaded!")
+            success_text.grid(columnspan=10, column=7, row=5)
             
-
     def place(self):
         # places the button in the GUI window
         input_label = tk.Label(root, text = self.label)
@@ -45,7 +52,7 @@ class InputBox():
         if self.toggle == True:
             self.toggle = tk.Button(root, image = on, bd = 0, command = self.switch)
             self.toggle.grid(columnspan=1, column=self.column + 1, row = self.row)
-            self.browse = tk.Button(root, text ='Open File', command = lambda:open_file()) 
+            self.browse = tk.Button(root, text ='Open File', command = lambda:self.open_file()) 
             self.browse.grid(columnspan=1, column=self.column + 2, row = self.row)
         else:
             self.input_box = tk.Entry(root)
@@ -86,6 +93,7 @@ class Task():
         btn_back = tk.Button(root, text="Back to Homepage", padx=10, pady=10, fg="black", bg="pink", command=back)
         btn_back.grid(columnspan=10, column=0, row=10, sticky = tk.W+tk.E)
     
+    
     def run(self):
         #Handles activity of the Run Button, stores user inputs in a data.json before running script.
         dict_copy = self.input_dict.copy()
@@ -94,6 +102,11 @@ class Task():
             label = input.label
             dict_copy[label] = value
         dict_copy['id'] = self.label
+        if switch_is_on:
+            for input_box in self.inputs:
+                if input_box.toggle:
+                    dict_copy['file_path'] = input_box.file_path
+                    break
         # Storing inputs in JSON File.
         with open(os.path.join(os.path.dirname(__file__), 'data.json'), 'w') as convert_file:
             convert_file.write(json.dumps(dict_copy))
