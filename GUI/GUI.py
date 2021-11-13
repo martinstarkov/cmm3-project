@@ -4,7 +4,6 @@ import os
 from PIL import Image, ImageTk
 import json
 import task_a
-import input_boxes
 import pathlib
 
 global root
@@ -18,10 +17,11 @@ off = ImageTk.PhotoImage(file = os.path.join(os.path.dirname(__file__), "off.png
 class InputBox():
     """This takes every variable type and creates a label and a text box for it. //
     It also has methods to capture and store the data before running the simulation"""
-    def __init__(self, column, row, label, toggle = False, column_span = 1):
+    def __init__(self, column, row, label, data_type, toggle = False, column_span = 1):
         self.column = column
         self.row = row
         self.label = label
+        self.data_type = data_type
         self.toggle = toggle
         self.column_span = column_span
     
@@ -49,7 +49,7 @@ class InputBox():
         # places the button in the GUI window
         input_label = tk.Label(root, text = self.label)
         input_label.grid(column = self.column, row = self.row)
-        if self.toggle == True:
+        if self.toggle:
             self.toggle = tk.Button(root, image = on, bd = 0, command = self.switch)
             self.toggle.grid(columnspan=1, column=self.column + 1, row = self.row)
             self.browse = tk.Button(root, text ='Open File', command = lambda:self.open_file()) 
@@ -61,12 +61,15 @@ class InputBox():
     def get_input(self):
         #Takes the input from the entry box and returns it.
         if self.toggle and switch_is_on:
-            return 'True'
+            return True
         elif self.toggle and not switch_is_on:
-            return 'False'
+            return False
+        elif self.data_type == 'integer':
+            data = self.input_box.get()
+            return int(data)
         else:
             data = self.input_box.get()
-            return data
+            return float(data)
 
 class Task():
     """Manages each tasks landing page and inputs."""
@@ -96,20 +99,22 @@ class Task():
     
     def run(self):
         #Handles activity of the Run Button, stores user inputs in a data.json before running script.
-        dict_copy = self.input_dict.copy()
+        dict = self.input_dict
         for input in self.inputs:
             value = input.get_input()
             label = input.label
-            dict_copy[label] = value
-        dict_copy['id'] = self.label
+            dict[label][2] = value
         if switch_is_on:
             for input_box in self.inputs:
                 if input_box.toggle:
-                    dict_copy['file_path'] = input_box.file_path
+                    dict['File Path'] = input_box.file_path
                     break
         # Storing inputs in JSON File.
-        with open(os.path.join(os.path.dirname(__file__), 'data.json'), 'w') as convert_file:
-            convert_file.write(json.dumps(dict_copy))
+        with open(os.path.join(os.path.dirname(__file__), 'input_boxes.json')) as json_file:
+            dictionary = json.load(json_file)
+        dictionary[self.label] = dict
+        with open(os.path.join(os.path.dirname(__file__), 'input_boxes.json'), 'w') as json_file:
+            json.dump(dictionary, json_file, indent=4)
         for widgets in root.winfo_children():
             widgets.destroy()
         #TODO replace this with each tasks function.
@@ -136,16 +141,22 @@ def place_input_boxes(task_label):
     # Reads input boxes file, then checks for toggle or input box. Places input boxes/toggles.
     row_num = 3
     boxes = []
-    input_dict = input_boxes.Task_Dict[task_label]
-    for key in input_dict:
-        if input_boxes.Task_Dict[task_label][key][0] == "toggle":
-            element = InputBox(4, row_num, key, toggle=True)
+    with open(os.path.join(os.path.dirname(__file__), 'input_boxes.json')) as json_file:
+        dictionary = json.load(json_file)
+    task_dict = dictionary[task_label]
+    for key in task_dict:
+        if task_dict[key][0] == "toggle":
+            element = InputBox(4, row_num, key, task_dict[key][0], toggle=True)
+        elif key == "File Path":
+            pass
         else:
-            element = InputBox(4, row_num, key)
+            element = InputBox(4, row_num, key, task_dict[key][0])
         boxes.append(element)
         element.place()
         row_num += 1
-    return boxes, input_dict
+    return boxes, task_dict
+
+
 
 def back():
     # Handles the activity of the back button

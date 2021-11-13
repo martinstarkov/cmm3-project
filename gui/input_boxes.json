@@ -1,0 +1,150 @@
+{
+    "Task A": {
+        "Time (s)": [
+            "integer",
+            1,
+            1
+        ],
+        "Time Step (s)": [
+            "float",
+            0.1,
+            2.0
+        ],
+        "Velocity field": [
+            "toggle",
+            true,
+            true
+        ],
+        "Diffusivity": [
+            "float",
+            0.1,
+            34.0
+        ],
+        "Number of Particles": [
+            "integer",
+            65000,
+            54
+        ],
+        "File Path": "/Users/fredzikry/Documents/GitHub/cmm3-project/gui/velocityCMM3.dat"
+    },
+    "Task B": {
+        "Time (s)": [
+            "integer",
+            1,
+            ""
+        ],
+        "Time Step (s)": [
+            "float",
+            0.1,
+            ""
+        ],
+        "Velocity field": [
+            "toggle",
+            true,
+            ""
+        ],
+        "Diffusivity": [
+            "float",
+            0.1,
+            ""
+        ],
+        "Number of Particles": [
+            "integer",
+            65000,
+            ""
+        ],
+        "File Path": [
+            ""
+        ]
+    },
+    "Task C": {
+        "Time (s)": [
+            "integer",
+            1,
+            ""
+        ],
+        "Time Step (s)": [
+            "float",
+            0.1,
+            ""
+        ],
+        "Velocity field": [
+            "toggle",
+            true,
+            ""
+        ],
+        "Diffusivity": [
+            "float",
+            0.1,
+            ""
+        ],
+        "Number of Particles": [
+            "integer",
+            65000,
+            ""
+        ],
+        "File Path": [
+            ""
+        ]
+    },
+    "Task D": {
+        "Time (s)": [
+            "integer",
+            1,
+            ""
+        ],
+        "Time Step (s)": [
+            "float",
+            0.1,
+            ""
+        ],
+        "Velocity field": [
+            "toggle",
+            true,
+            ""
+        ],
+        "Diffusivity": [
+            "float",
+            0.1,
+            ""
+        ],
+        "Number of Particles": [
+            "integer",
+            65000,
+            ""
+        ],
+        "File Path": [
+            ""
+        ]
+    },
+    "Task E": {
+        "Time (s)": [
+            "integer",
+            1,
+            ""
+        ],
+        "Time Step (s)": [
+            "float",
+            0.1,
+            ""
+        ],
+        "Velocity field": [
+            "toggle",
+            true,
+            ""
+        ],
+        "Diffusivity": [
+            "float",
+            0.1,
+            ""
+        ],
+        "Number of Particles": [
+            "integer",
+            65000,
+            ""
+        ],
+        "File Path": [
+            ""
+        ]
+    }
+}

@@ -1,1 +1,1 @@
-{"Time (s)": "", "Time Step (s)": "", "Velocity field": "True", "Diffusivity": "", "Number of Particles": "", "id": "Task A", "file_path": "/Users/fredzikry/Documents/GitHub/cmm3-project/gui/velocityCMM3.dat"}
+{"Time (s)": ["integer", 1, "1"], "Time Step (s)": ["float", 0.1, "2"], "Velocity field": ["toggle", true, "True"], "Diffusivity": ["float", 0.1, "3"], "Number of Particles": ["integer", 65000, "4"], "File Path": "/Users/fredzikry/Documents/GitHub/cmm3-project/gui/velocityCMM3.dat"}
