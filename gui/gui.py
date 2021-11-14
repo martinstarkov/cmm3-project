@@ -9,10 +9,11 @@ global root
 root = tk.Tk()
 
 # Global variables for toggle switch
+switch_is_on = True
 on = ImageTk.PhotoImage(file=os.path.join(os.path.dirname(__file__), "on.png"))
 off = ImageTk.PhotoImage(file=os.path.join(
     os.path.dirname(__file__), "off.png"))
-switch_is_on = True
+
 
 
 class InputBox():
