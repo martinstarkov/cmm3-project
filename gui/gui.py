@@ -20,72 +20,116 @@ class InputBox():
     """This takes every variable type and creates a label and a text box for it. //
     It also has methods to capture and store the data before running the simulation"""
 
-    def __init__(self, column, row, label, data_type, default, toggle=False, column_span=1):
+    def __init__(self, column, row, label, data_type, default, column_span=1):
         self.column = column
         self.row = row
         self.label = label
         self.data_type = data_type
         self.default = default
-        self.toggle = toggle
         self.column_span = column_span
 
-    def switch(self):
-        # handles toggle button functionality
-        global switch_is_on
-        if switch_is_on:
-            self.toggle.config(image=off)
-            switch_is_on = False
-            if self.label == 'Velocity Field':
-                self.browse.destroy()
-        else:
-            self.toggle.config(image=on)
-            switch_is_on = True
-            if self.label == 'Velocity Field':
-                self.browse = tk.Button(
-                    root, text='Open File', command=lambda: self.open_file())
-                self.browse.grid(
-                    columnspan=1, column=self.column + 2, row=self.row)
+    def place(self):
+        # Places the button/toggle in the GUI window.
+        input_label = tk.Label(root, text=self.label)
+        input_label.grid(column=self.column, row=self.row)
+        self.input_box = tk.Entry(root)
+        self.input_box.insert(0, self.default)
+        self.input_box.grid(column=self.column + 1, row=self.row)
 
+    def get_input(self):
+        # Takes the input from the entry box and stores it as a class variable.
+        if self.data_type == 'integer':
+            data = self.input_box.get()
+            return int(data)
+        else:
+            data = self.input_box.get()
+            return float(data)
+
+class Toggle():
+    def __init__(self, column, row, label, default,  status=True):
+        self.column = column
+        self.row = row 
+        self.label = label
+        self.default = default
+        self.status = status
+    
+    def add(self):
+        pass
+
+    def remove(self):
+        pass
+    
+    def place(self):
+        # Places the button/toggle in the GUI window.
+        input_label = tk.Label(root, text=self.label)
+        input_label.grid(column=self.column, row=self.row)
+        self.button = tk.Button(root, image=on, bd=0, command=self.toggle)
+        self.button.grid(columnspan=1, column=self.column + 1, row=self.row)
+        self.add()
+
+    def toggle(self):
+        self.status = not self.status
+        if self.status:
+            self.button.config(image=on)
+            self.add()
+        else:
+            self.button.config(image=off)
+            self.remove()
+    
+    def get_input(self):
+        if self.status:
+            return True
+        else:
+            return False
+    
+class RectangleToggle(Toggle):
+    # child class constructor
+    def __init__(self, column, row, label, default,  status=True):
+        # call parent class constructor
+        Toggle.__init__(self, column, row, label, default,  status=True)
+
+    def add(self):
+        pass
+
+    def remove(self):
+        pass
+
+class CircleToggle(Toggle):
+    def __init__(self, column, row, label, default,  status=True):
+        # call parent class constructor
+        Toggle.__init__(self, column, row, label, default,  status=True)
+
+    def add(self):
+        pass
+
+    def remove(self):
+        pass
+
+class VelocityFieldToggle(Toggle):
+    def __init__(self, column, row, label, default,  status=True):
+        # call parent class constructor
+        Toggle.__init__(self, column, row, label, default,  status=True)
+        self.file = None
+        self.file_path = None
+    
     def open_file(self):
         # handles the activity of the open file button. stores the path of the file as a variable and stores it as a class variable.
         self.file = askopenfile(mode='r', filetypes=[
                                 ('velocity field', '*.dat')]).name
         if self.file is not None:
             self.file_path = str(pathlib.PurePath(str(self.file)))
-            success_text = tk.Label(text="File Loaded!")
+            success_text = tk.Label(text=str(self.file_path))
             success_text.grid(
                 columnspan=10, column=self.column + 3, row=self.row)
 
-    def place(self):
-        # Places the button/toggle in the GUI window.
-        input_label = tk.Label(root, text=self.label)
-        input_label.grid(column=self.column, row=self.row)
-        if self.toggle:
-            self.toggle = tk.Button(root, image=on, bd=0, command=self.switch)
-            self.toggle.grid(
-                columnspan=1, column=self.column + 1, row=self.row)
-            if self.label == 'Velocity Field':
-                self.browse = tk.Button(
+    def add(self):
+        self.browse = tk.Button(
                     root, text='Open File', command=lambda: self.open_file())
-                self.browse.grid(
+        self.browse.grid(
                     columnspan=1, column=self.column + 2, row=self.row)
-        else:
-            self.input_box = tk.Entry(root)
-            self.input_box.insert(0, self.default)
-            self.input_box.grid(column=self.column + 1, row=self.row)
-
-    def get_input(self):
-        # Takes the input from the entry box and stores it as a class variable.
-        if self.toggle and switch_is_on:
-            return True
-        elif self.toggle and not switch_is_on:
-            return False
-        elif self.data_type == 'integer':
-            data = self.input_box.get()
-            return int(data)
-        else:
-            data = self.input_box.get()
-            return float(data)
+    
+    def remove(self):
+        self.browse.destroy()
 
 
 class Task():
@@ -108,13 +152,16 @@ class Task():
         instructions = tk.Label(
             text="Define your variables before running the script.")
         instructions.grid(columnspan=10, column=0, row=2)
+
+        # Create Input Boxes
         self.inputs, self.input_dict = place_input_boxes(self.label)
+
         btn_run = tk.Button(root, text="Run Simulation", padx=10,
                             pady=10, fg="black", bg="pink", command=self.run)
-        btn_run.grid(columnspan=10, column=0, row=9, sticky=tk.W+tk.E)
+        btn_run.grid(columnspan=10, column=0, row=self.inputs[-1].row + 2, sticky=tk.W+tk.E)
         btn_back = tk.Button(root, text="Back to Homepage",
                              padx=10, pady=10, fg="black", bg="pink", command=back)
-        btn_back.grid(columnspan=10, column=0, row=10, sticky=tk.W+tk.E)
+        btn_back.grid(columnspan=10, column=0, row=self.inputs[-1].row + 3, sticky=tk.W+tk.E)
 
     def run(self):
         # Handles activity of the Run Button, stores user inputs in a data.json before running script.
@@ -124,11 +171,8 @@ class Task():
             label = input.label
             dict[label][2] = value
         for input_box in self.inputs:
-            if input_box.label == 'Velocity Field' and input_box.file is not None:
-                print('working')
-                dict['Velocity Field'][2] = True
+            if (input_box.label == 'Velocity Field'):
                 dict['File Path'][2] = input_box.file_path
-                break
         # Storing inputs in JSON File.
         with open(os.path.join(os.path.dirname(__file__), 'input_boxes.json')) as json_file:
             dictionary = json.load(json_file)
@@ -169,7 +213,13 @@ def place_input_boxes(task_label):
     # Creating InputBox class instances
     for key in task_dict:
         if task_dict[key][0] == "toggle":
-            element = InputBox(4, row_num, key, task_dict[key][0], task_dict[key][1], toggle=True)
+            if task_dict[key][3] == "velocity_field":
+                element = VelocityFieldToggle(4, row_num, key, task_dict[key][1])
+            elif task_dict[key][3] == "circle":
+                element = CircleToggle(4, row_num, key, task_dict[key][1])
+            elif task_dict[key][3] == "rectangle":
+                element = RectangleToggle(4, row_num, key, task_dict[key][1])
+            # element = InputBox(4, row_num, key, task_dict[key][0], task_dict[key][1], toggle=True)
         elif key == "File Path":
             pass
         else:
@@ -199,7 +249,7 @@ def place_logo():
 def main(root):
     # Generates the landing page.
     canvas = tk.Canvas(root, height=500, width=900)
-    canvas.grid(columnspan=10, rowspan=10)
+    canvas.grid(columnspan=10, rowspan=30)
     place_logo()
     instructions = tk.Label(text="Choose the task you wish to run.")
     instructions.grid(columnspan=10, column=0, row=1)
