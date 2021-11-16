@@ -66,67 +66,7 @@
             ""
         ]
     },
-    "Task C": {
-        "Time (s)": [
-            "integer",
-            1,
-            ""
-        ],
-        "Time Step (s)": [
-            "float",
-            0.1,
-            ""
-        ],
-        "Velocity field": [
-            "toggle",
-            true,
-            ""
-        ],
-        "Diffusivity": [
-            "float",
-            0.1,
-            ""
-        ],
-        "Number of Particles": [
-            "integer",
-            65000,
-            ""
-        ],
-        "File Path": [
-            ""
-        ]
-    },
     "Task D": {
-        "Time (s)": [
-            "integer",
-            1,
-            ""
-        ],
-        "Time Step (s)": [
-            "float",
-            0.1,
-            ""
-        ],
-        "Velocity field": [
-            "toggle",
-            true,
-            ""
-        ],
-        "Diffusivity": [
-            "float",
-            0.1,
-            ""
-        ],
-        "Number of Particles": [
-            "integer",
-            65000,
-            ""
-        ],
-        "File Path": [
-            ""
-        ]
-    },
-    "Task E": {
         "Time (s)": [
             "integer",
             1,

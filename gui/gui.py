@@ -20,11 +20,12 @@ class InputBox():
     """This takes every variable type and creates a label and a text box for it. //
     It also has methods to capture and store the data before running the simulation"""
 
-    def __init__(self, column, row, label, data_type, toggle=False, column_span=1):
+    def __init__(self, column, row, label, data_type, default, toggle=False, column_span=1):
         self.column = column
         self.row = row
         self.label = label
         self.data_type = data_type
+        self.default = default
         self.toggle = toggle
         self.column_span = column_span
 
@@ -46,6 +47,7 @@ class InputBox():
                     columnspan=1, column=self.column + 2, row=self.row)
 
     def open_file(self):
+        # handles the activity of the open file button. stores the path of the file as a variable and stores it as a class variable.
         self.file = askopenfile(mode='r', filetypes=[
                                 ('velocity field', '*.dat')]).name
         if self.file is not None:
@@ -55,7 +57,7 @@ class InputBox():
                 columnspan=10, column=self.column + 3, row=self.row)
 
     def place(self):
-        # places the button in the GUI window
+        # Places the button/toggle in the GUI window.
         input_label = tk.Label(root, text=self.label)
         input_label.grid(column=self.column, row=self.row)
         if self.toggle:
@@ -69,10 +71,11 @@ class InputBox():
                     columnspan=1, column=self.column + 2, row=self.row)
         else:
             self.input_box = tk.Entry(root)
+            self.input_box.insert(0, self.default)
             self.input_box.grid(column=self.column + 1, row=self.row)
 
     def get_input(self):
-        # Takes the input from the entry box and returns it.
+        # Takes the input from the entry box and stores it as a class variable.
         if self.toggle and switch_is_on:
             return True
         elif self.toggle and not switch_is_on:
@@ -88,10 +91,9 @@ class InputBox():
 class Task():
     """Manages each tasks landing page and inputs."""
 
-    def __init__(self, task, row, column_span=10):
-        self.task = task
+    def __init__(self, label, row, column_span=10):
+        self.label = label
         self.row = row
-        self.label = "Task " + (self.task)
         self.column_span = column_span
 
     def go_to_task(self):
@@ -144,9 +146,11 @@ class Task():
         btn.grid(columnspan=10, column=0, row=self.row, sticky=tk.W+tk.E)
 
 
-def init_buttons(list):
-    # Takes a list and element type (Input Box or Button) and generates the element using the respective class
-    tasks = ["A", "B", "C", "D", "E"]
+def main_menu_buttons(list):
+    # Reads the input boxes json file and populates the main menu.
+    with open(os.path.join(os.path.dirname(__file__), 'input_boxes.json')) as json_file:
+            tasks = json.load(json_file)
+    #to avoid interference with logo
     row_num = 2
     for task in tasks:
         element = Task(task, row_num)
@@ -158,21 +162,22 @@ def init_buttons(list):
 def place_input_boxes(task_label):
     # Reads input boxes file, then checks for toggle or input box. Places input boxes/toggles.
     row_num = 3
-    boxes = []
+    input_boxes = []
     with open(os.path.join(os.path.dirname(__file__), 'input_boxes.json')) as json_file:
         dictionary = json.load(json_file)
-    task_dict = dictionary[task_label]
+    task_dict = dictionary[task_label] #finding the specific dictionary for the task.
+    # Creating InputBox class instances
     for key in task_dict:
         if task_dict[key][0] == "toggle":
-            element = InputBox(4, row_num, key, task_dict[key][0], toggle=True)
+            element = InputBox(4, row_num, key, task_dict[key][0], task_dict[key][1], toggle=True)
         elif key == "File Path":
             pass
         else:
-            element = InputBox(4, row_num, key, task_dict[key][0])
-        boxes.append(element)
+            element = InputBox(4, row_num, key, task_dict[key][0], task_dict[key][1])
+        input_boxes.append(element)
         element.place()
         row_num += 1
-    return boxes, task_dict
+    return input_boxes, task_dict
 
 
 def back():
@@ -180,16 +185,6 @@ def back():
     for widgets in root.winfo_children():
         widgets.destroy()
     main(root)
-
-
-def open_file():
-    file = askopenfile(mode='r', filetypes=[('velocity field', '*.dat')])
-    if file is not None:
-        success_text = tk.Label(text="File Loaded!")
-        success_text.grid(columnspan=10, column=7, row=5)
-        content = file.read()
-        with open('velocityfield.dat', 'w') as data:
-            data.write(content)
 
 
 def place_logo():
@@ -209,7 +204,7 @@ def main(root):
     instructions = tk.Label(text="Choose the task you wish to run.")
     instructions.grid(columnspan=10, column=0, row=1)
     buttons = []
-    init_buttons(buttons)
+    main_menu_buttons(buttons)
     root.mainloop()
 
 
