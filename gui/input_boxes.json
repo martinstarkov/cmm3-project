@@ -1,79 +1,53 @@
 {
     "Custom Specifications": {
-        "Time (s)": [
-            "integer",
-            1,
-            1,
-            ""
-        ],
-        "Time Step (s)": [
-            "float",
-            0.1,
-            0.1,
-            ""
-        ],
-        "Animated?": [
-            "toggle",
-            true,
-            false,
-            ""
-        ],
-        "Diffusivity": [
-            "float",
-            0.1,
-            0.1,
-            ""
-        ],
-        "Number of Particles": [
-            "integer",
-            65000,
-            65000,
-            ""
-        ],
-        "Domain": [
-            "domain",
-            [
-                0.1,
-                0.1,
-                0.1,
-                0.1
-            ],
-            [
-                0.1,
-                0.1,
-                0.1,
-                0.1
-            ],
-            ""
-        ],
-        "Velocity Field": [
-            "toggle",
-            true,
-            false,
-            "velocity_field"
-        ],
-        "Add Circle": [
-            "toggle",
-            [
-                0.1,
-                0.1,
-                0.1,
-                0.1
-            ],
-            false,
-            "circle"
-        ],
-        "Add Rectangle": [
-            "toggle",
-            [
-                0.1,
-                0.1,
-                0.1,
-                0.1,
-                0.1
-            ],
-            false,
-            "rectangle"
-        ]
+        "Time (s) (int)": {
+            "type": "integer",
+            "default": 1,
+            "user": 1
+        },
+        "Time Step (s) (float)": {
+            "type": "float",
+            "default": 0.1,
+            "user": 0.1
+        },
+        "Diffusivity (float)": {
+            "type": "float",
+            "default": 0.1,
+            "user": 0.1
+        },
+        "Particle Count (int)": {
+            "type": "integer",
+            "default": 65000,
+            "user": 65000
+        },
+        "Domain": {
+            "type": "domain",
+            "default": [-1.0, 1.0, -1.0, 1.0],
+            "user": [-1.0, 1.0, -1.0, 1.0]
+        },
+        "Animated": {
+            "type": "toggle",
+            "default": ["bool", true],
+            "user": ["bool", true],
+            "image": ["off.png", "on.png"]
+        },
+        "Velocity Field": {
+            "type": "toggle",
+            "default": ["field", true, "velocityCMM3.dat"],
+            "user": ["field", true, "velocityCMM3.dat"],
+            "image": ["off.png", "on.png"]
+        },
+        "Add Circle": {
+            "type": "toggle",
+            "default": ["circle", false, 1.0, 0.4, 0.4, 0.25],
+            "user": ["circle", false, 1.0, 0.4, 0.4, 0.25],
+            "image": ["off.png", "on.png"]
+        },
+        "Add Rectangle": {
+            "type": "toggle",
+            "default": ["rectangle", false, 1.0, -1.0, 0.0, -1.0, 1.0],
+            "user": ["rectangle", false, 1.0, -1.0, 0.0, -1.0, 1.0],
+            "image": ["off.png", "on.png"]
+        }
     }
 }
