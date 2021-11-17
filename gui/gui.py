@@ -27,20 +27,48 @@ class InputBox():
         self.data_type = data_type
         self.default = default
         self.column_span = column_span
+        self.boxes = []
 
     def place(self):
         # Places the button/toggle in the GUI window.
         input_label = tk.Label(root, text=self.label)
         input_label.grid(column=self.column, row=self.row)
-        self.input_box = tk.Entry(root)
-        self.input_box.insert(0, self.default)
-        self.input_box.grid(column=self.column + 1, row=self.row)
+        if self.data_type != "domain":
+            self.input_box = tk.Entry(root)
+            self.input_box.insert(0, self.default)
+            self.input_box.grid(column=self.column + 1, row=self.row)
+        else:
+            self.window = tk.PanedWindow(root, borderwidth = 5)
+            self.window.grid(row=self.row, column=self.column + 1, sticky="nsew")
+            xmin_input_box = tk.Entry(self.window, width=5)
+            xmin_input_box.insert(0, self.default[0])
+            xmin_input_box.grid(column=0, row=0)
+            x_label = tk.Label(self.window, text="< x <")
+            x_label.grid(column=1, row=0)
+            xmax_input_box = tk.Entry(self.window, width=5)
+            xmax_input_box.insert(0, self.default[1])
+            xmax_input_box.grid(column=2, row=0)
+            ymin_input_box = tk.Entry(self.window, width=5)
+            ymin_input_box.insert(0, self.default[2])
+            ymin_input_box.grid(column=0, row=1)
+            y_label = tk.Label(self.window, text="< y <")
+            y_label.grid(column=1, row=1)
+            ymax_input_box = tk.Entry(self.window, width=5)
+            ymax_input_box.insert(0, self.default[3])
+            ymax_input_box.grid(column=2, row=1)
+            self.boxes.extend([xmin_input_box, xmax_input_box, ymin_input_box, ymax_input_box])
 
     def get_input(self):
         # Takes the input from the entry box and stores it as a class variable.
         if self.data_type == 'integer':
             data = self.input_box.get()
             return int(data)
+        elif self.data_type == 'domain':
+            values = []
+            for input_box in self.input_boxes:
+                value = input_box.get()
+                values.append(value)
+            return values
         else:
             data = self.input_box.get()
             return float(data)
@@ -57,10 +85,14 @@ class Toggle():
         pass
 
     def remove(self):
-        pass
+        for element in self.elements:
+            element.destroy()
+        print(self.elements[0]) 
     
     def place(self):
         # Places the button/toggle in the GUI window.
+        self.elements = []
+        self.input_boxes = []
         input_label = tk.Label(root, text=self.label)
         input_label.grid(column=self.column, row=self.row)
         self.button = tk.Button(root, image=on, bd=0, command=self.toggle)
@@ -77,8 +109,12 @@ class Toggle():
             self.remove()
     
     def get_input(self):
+        values = []
         if self.status:
-            return True
+            for input_box in self.input_boxes:
+                value = input_box.get()
+                values.append(value)
+            return True, values
         else:
             return False
     
@@ -89,10 +125,35 @@ class RectangleToggle(Toggle):
         Toggle.__init__(self, column, row, label, default,  status=True)
 
     def add(self):
-        pass
-
-    def remove(self):
-        pass
+        self.window = tk.PanedWindow(root)
+        self.window.grid(row=self.row, column=self.column + 2, sticky="nsew", padx= 10, pady= 10)
+        left_pane = tk.Frame(self.window, width=50)
+        right_pane = tk.PanedWindow(self.window, width=100)
+        self.window.add(left_pane)
+        self.window.add(right_pane)
+        conc_label = tk.Label(left_pane, text="φ =")
+        conc_label.grid(column=0, row=0)
+        conc_input_box = tk.Entry(left_pane, width=5)
+        conc_input_box.insert(0, self.default[0])
+        conc_input_box.grid(column=1, row=0)
+        xmin_input_box = tk.Entry(right_pane, width=5)
+        xmin_input_box.insert(0, self.default[1])
+        xmin_input_box.grid(column=0, row=0)
+        x_label = tk.Label(right_pane, text="< x <")
+        x_label.grid(column=1, row=0)
+        xmax_input_box = tk.Entry(right_pane, width=5)
+        xmax_input_box.insert(0, self.default[2])
+        xmax_input_box.grid(column=2, row=0)
+        ymin_input_box = tk.Entry(right_pane, width=5)
+        ymin_input_box.insert(0, self.default[3])
+        ymin_input_box.grid(column=0, row=1)
+        y_label = tk.Label(right_pane, text="< y <")
+        y_label.grid(column=1, row=1)
+        ymax_input_box = tk.Entry(right_pane, width=5)
+        ymax_input_box.insert(0, self.default[4])
+        ymax_input_box.grid(column=2, row=1)
+        self.input_boxes.extend([conc_input_box, xmin_input_box, xmax_input_box, ymin_input_box, ymax_input_box])
+        self.elements = (self.window.winfo_children())
 
 class CircleToggle(Toggle):
     def __init__(self, column, row, label, default,  status=True):
@@ -100,10 +161,35 @@ class CircleToggle(Toggle):
         Toggle.__init__(self, column, row, label, default,  status=True)
 
     def add(self):
-        pass
+        self.window = tk.PanedWindow(root)
+        self.window.grid(row=self.row, column=self.column + 2, sticky="nsew", padx= 10, pady= 30)
+        left_pane = tk.Frame(self.window, width=50)
+        right_pane = tk.PanedWindow(self.window, width=100)
+        self.window.add(left_pane)
+        self.window.add(right_pane)
+        conc_label = tk.Label(left_pane, text="φ", height = 1)
+        conc_label.grid(column=0, row=0)
+        conc_input_box = tk.Entry(left_pane, width=5)
+        conc_input_box.insert(0, self.default[0])
+        conc_input_box.grid(column=0, row=1)
+        x_label = tk.Label(right_pane, text="x")
+        x_label.grid(column=0, row=0)
+        y_label = tk.Label(right_pane, text="y")
+        y_label.grid(column=1, row=0)
+        r_label = tk.Label(right_pane, text="r")
+        r_label.grid(column=2, row=0)
+        x_input_box = tk.Entry(right_pane, width=5)
+        x_input_box.insert(0, self.default[1])
+        x_input_box.grid(column=0, row=1)
+        y_input_box = tk.Entry(right_pane, width=5)
+        y_input_box.insert(0, self.default[2])
+        y_input_box.grid(column=1, row=1)
+        r_input_box = tk.Entry(right_pane, width=5)
+        r_input_box.insert(0, self.default[3])
+        r_input_box.grid(column=2, row=1)
+        self.input_boxes.extend([conc_input_box, x_input_box, y_input_box, r_input_box])
+        self.elements = (self.window.winfo_children())
 
-    def remove(self):
-        pass
 
 class VelocityFieldToggle(Toggle):
     def __init__(self, column, row, label, default,  status=True):
@@ -123,13 +209,15 @@ class VelocityFieldToggle(Toggle):
                 columnspan=10, column=self.column + 3, row=self.row)
 
     def add(self):
+        self.window = tk.PanedWindow(root)
+        self.window.grid(row=self.row, column=self.column + 2, sticky="nsew", columnspan=4, rowspan=1)
         self.browse = tk.Button(
-                    root, text='Open File', command=lambda: self.open_file())
+                    self.window, text='Open File', command=lambda: self.open_file())
         self.browse.grid(
                     columnspan=1, column=self.column + 2, row=self.row)
+        self.elements.append(self.browse)
+        
     
-    def remove(self):
-        self.browse.destroy()
 
 
 class Task():
@@ -158,10 +246,10 @@ class Task():
 
         btn_run = tk.Button(root, text="Run Simulation", padx=10,
                             pady=10, fg="black", bg="pink", command=self.run)
-        btn_run.grid(columnspan=10, column=0, row=self.inputs[-1].row + 2, sticky=tk.W+tk.E)
+        btn_run.grid(columnspan=10, column=0, row=self.inputs[-1].row + 3, sticky=tk.W+tk.E)
         btn_back = tk.Button(root, text="Back to Homepage",
                              padx=10, pady=10, fg="black", bg="pink", command=back)
-        btn_back.grid(columnspan=10, column=0, row=self.inputs[-1].row + 3, sticky=tk.W+tk.E)
+        btn_back.grid(columnspan=10, column=0, row=self.inputs[-1].row + 4, sticky=tk.W+tk.E)
 
     def run(self):
         # Handles activity of the Run Button, stores user inputs in a data.json before running script.
