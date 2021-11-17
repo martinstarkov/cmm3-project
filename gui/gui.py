@@ -136,7 +136,7 @@ import json
 # User interface object to be called at the beginning of the program creation.
 class UserInterface(object):
     def __init__(self, json_filepath):
-        # Create Tkinter window
+        # Create Tkinter window of given size and grid configuration.
         self.root = tk.Tk()
         self.root.geometry("700x700+0+0")
         self.root.configure(bg="white")
@@ -147,6 +147,7 @@ class UserInterface(object):
         # Divide window into 3x4 grid with a relative (out of 100) size for each cell.
         column_sizes = [20, 60, 20]
         row_sizes = [20, 7, 66, 7]
+        # Configure the relative widths and heights of the grid columns and rows respectively.
         for column, relative_width in enumerate(column_sizes):
             self.frame.grid_columnconfigure(column, weight=relative_width, uniform="frame")
         for row, relative_height in enumerate(row_sizes):
@@ -159,13 +160,14 @@ class UserInterface(object):
             self.create_menu_buttons()
             self.root.mainloop()
         
-    # Creates the logo and a label for the GUI page.
     def create_header(self):
+        # Create the GUI logo.
         image = Image.open(os.path.join(os.path.dirname(__file__), "logo.png"))
         tkinter_image = ImageTk.PhotoImage(image, master=self.frame)
         logo = tk.Label(bg="white", image=tkinter_image, master=self.frame)
         logo.image = tkinter_image
         logo.grid(row=0, column=1, sticky="NSEW")
+        # Create the GUI label (modified by main menu buttons when they are pressed).
         self.label_text = "Please choose a mode of operation."
         self.label = tk.Label(text=self.label_text, bg="white", master=self.frame)
         self.label.grid(row=1, column=1, sticky="NSEW")
@@ -196,7 +198,9 @@ class UserInterface(object):
                 widget.destroy()
         self.label["text"] = self.label_text
     
-    # TODO: Runs the simulation with the given parameters. 
+    # TODO: Runs the simulation with parameters read from the json.
+    # Probably should cycle through the InputField self.entries arrays and
+    # for each of the run some sort of parameter parse and write to the JSON.
     def run(self):
         pass
       
@@ -208,13 +212,19 @@ class MainMenuButton(object):
         self.button = tk.Button(text=name, fg="black", bg="pink", command=self.press, master=self.ui.container)
         self.button.grid(row=row, column=0, pady=10, ipady=40, sticky="EW")
     def press(self):
+        # Whenever a main menu button is pressed, the container is cleared and
+        # the label below the logo is set to the name of the main menu button.
         self.ui.clear_container()
         self.ui.label["text"] = self.name
     
 # Abstract class which represents an input row.
 class InputField(object):
+    # Field info contains the input field info from the JSON file.
     def __init__(self, ui, field_info, row):
+        # Used for storing the entry fields of the given input field.
+        # TODO: Cycle through these later to write to the JSON.
         self.entries = []
+        # Create a sub container for the input field and label.
         self.sub_container = tk.Frame(bg="white", master=ui.container)
         self.sub_container.grid(row=row, column=0, sticky="NSEW")
         self.sub_container.grid_columnconfigure(0, weight=50, uniform="sub_container")
@@ -229,6 +239,7 @@ class InputField(object):
 class NumericInputField(InputField):
     def create(self, text):
         super().create(text)
+        # Creates a simple input parameter box with a default value.
         input = tk.Entry(bg="white", master=self.sub_container, justify="center")
         input.insert(0, self.field_info["default"])
         input.grid(row=0, column=1, pady=10, sticky="NSEW")
@@ -240,15 +251,20 @@ class DomainInputField(InputField):
         super().create(text)
         self.domain_container = tk.Frame(bg="white", master=self.sub_container)
         self.domain_container.grid(row=0, column=1, sticky="NSEW")
+        # Array of relative weights for the column widths.
         widths = [15, 20, 15]
-        for row, label in enumerate(["< x <", "< y <"]):
+        # Labels between entry fields.
+        labels = ["< x <", "< y <"]
+        for row, label in enumerate(labels):
             self.domain_container.grid_rowconfigure(row, weight=50)
             for column, relative_width in enumerate(widths):
                 self.domain_container.grid_columnconfigure(column, weight=relative_width, uniform="axis_container")
+                # Odd columns are entries.
                 if column % 2 == 0:
                     input = tk.Entry(bg="white", master=self.domain_container, justify="center")
                     input.insert(0, self.field_info["default"][len(self.entries)])
                     self.entries.append(input)
+                # Even column is a label.
                 else:
                     input = tk.Label(text=label, bg="white", padx=10, master=self.domain_container)
                 # Only add bottom padding to the second row.
@@ -258,22 +274,23 @@ class DomainInputField(InputField):
 class ToggleInput():
     def __init__(self, toggle_container):
         self.entries = []
+        # Create a sub container in the toggle container.
         self.input_container = tk.Frame(bg="white", bd=0, master=toggle_container)
         self.input_container.grid(row=0, column=1, sticky="NSEW")
         pass
     
     def remove(self):
         for widget in self.input_container.winfo_children():
+            # Remove all widgets aside from the toggle button.
             if widget.cget("text") != "toggle_button":
                 widget.destroy()
+        # TODO: Clear self.entries array here.
 
 
 class VelocityInput(ToggleInput):
     # TODO: Make this work.
     def create(self, field_info):
         pass
-        #self.input_container.grid_rowconfigure(row, weight=50)
-        #self.input_container.grid_rowconfigure(row, weight=50)
     
     
 class CircleInput(ToggleInput):
@@ -283,17 +300,25 @@ class CircleInput(ToggleInput):
 
 
 class RectangleInput(ToggleInput):
-    # TODO: Make this work.
+    # TODO: Make this work as intended.
     def create(self, field_info):
+        # Array of relative weights for the column widths.
         widths = [15, 20, 15]
-        for row, label in enumerate(["< x <", "< y <"]):
+        # Labels between entry fields.
+        labels = ["< x <", "< y <"]
+        for row, label in enumerate(labels):
             self.input_container.grid_rowconfigure(row, weight=50)
             for column, relative_width in enumerate(widths):
                 self.input_container.grid_columnconfigure(column, weight=relative_width, uniform="rectangle_container")
+                # Odd columns are entries.
                 if column % 2 == 0:
                     input = tk.Entry(bg="white", master=self.input_container, justify="center")
+                    # TODO: Figure out the entries array, right now the issue is that create is called multiple times,
+                    # unlike in the DomainInputField create function, which means most likely the self.remove function
+                    # should also clear the entries array.
                     #input.insert(0, field_info["default"][len(self.entries)])
                     #self.entries.append(input)
+                # Even column is a label.
                 else:
                     input = tk.Label(text=label, bg="white", padx=10, master=self.input_container)
                 # Only add bottom padding to the second row.
@@ -303,9 +328,10 @@ class RectangleInput(ToggleInput):
 class ToggleInputField(InputField):
     def create(self, text):
         super().create(text)
+        # Create images for on and off state of toggle button.
         self.off = ImageTk.PhotoImage(file=os.path.join(os.path.dirname(__file__), self.field_info["image"][0]))
         self.on = ImageTk.PhotoImage(file=os.path.join(os.path.dirname(__file__), self.field_info["image"][1]))
-        type = self.field_info["default"][0]
+        # Default state of the button
         self.state = self.field_info["default"][1]
         self.toggle_container = tk.Frame(bg="white", master=self.sub_container)
         self.toggle_container.grid(row=0, column=1, sticky="NSEW")
@@ -315,6 +341,8 @@ class ToggleInputField(InputField):
         self.button = tk.Button(text="toggle_button", bg="white", activebackground="white", bd=0, \
                                 image=self.get_image(), command=self.toggle, master=self.toggle_container)
         self.button.grid(row=0, column=0, pady=10, ipady=10, sticky="NSEW")
+        # Type of the toggle button
+        type = self.field_info["default"][0]
         # Default input is animation toggle (just a button, hence no class type).
         self.input = None
         if type == "field":
@@ -326,10 +354,14 @@ class ToggleInputField(InputField):
             
         # Update entries array for input retrieval.
         if self.input is not None:
+            # Since self.entries is an array, the easiest way to transfer the entry
+            # fields up the parent chain is by setting the array to the internal one.
             self.entries = self.input.entries
         else:
+            # TODO: Make sure that when parsing the self.entries array, check for
+            # tk.Button type vs tk.Entry for the animation toggle button input.
             self.entries.append(self.button)
-        self.update()
+        self.update_visibility()
             
     # Returns the image of the button for the given state.
     def get_image(self):
@@ -338,10 +370,11 @@ class ToggleInputField(InputField):
     # Toggles the internal state of the button.
     def toggle(self):
         self.state = not self.state
-        self.update()
+        self.update_visibility()
         self.button.config(image=self.get_image())
     
-    def update(self):
+    # Updates the visibility of the toggle input container contents. 
+    def update_visibility(self):
         if self.input is not None:
             if self.state:
                 self.input.create(self.field_info)
@@ -352,12 +385,16 @@ class ToggleInputField(InputField):
 class CustomSpecifications(MainMenuButton):
     def press(self):
         super().press()
+        # Read the input dictionary from the JSON.
         input_dictionary = self.ui.data[self.name]
+        # Count the number of input fields and add 2 rows for the run and back buttons.
         row_count = len(input_dictionary.keys()) + 2
+        # Relative height of an invidual input row.
         relative_height = int(100 / row_count)
         for row, (key, field_info) in enumerate(input_dictionary.items()):
             self.ui.container.grid_rowconfigure(row, weight=relative_height)
             self.create_input_object(key, field_info, row)
+        # Set alignment for last two buttons.
         self.ui.container.grid_rowconfigure(row_count, weight=relative_height)
         self.ui.container.grid_rowconfigure(row_count - 1, weight=relative_height)
         run_button = tk.Button(text="Run Simulation", fg="black", bg="pink", \
@@ -377,12 +414,12 @@ class CustomSpecifications(MainMenuButton):
             input = DomainInputField(self.ui, field_info, row)
         input.create(text)
     
-
+# TODO: Make this work.
 class ValidationTasks(MainMenuButton):
     def press(self):
         super().press()
 
-
+# TODO: Make this work.
 class EngineeringSpill(MainMenuButton):
     def press(self):
         super().press()
