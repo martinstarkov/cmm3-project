@@ -38,8 +38,8 @@ class InputBox():
             self.input_box.insert(0, self.default)
             self.input_box.grid(column=self.column + 1, row=self.row)
         else:
-            self.window = tk.PanedWindow(root, borderwidth = 5)
-            self.window.grid(row=self.row, column=self.column + 1, sticky="nsew")
+            window = tk.PanedWindow(root, borderwidth = 5)
+            window.grid(row=self.row, column=self.column + 1, sticky="nsew")
             xmin_input_box = tk.Entry(self.window, width=5)
             xmin_input_box.insert(0, self.default[0])
             xmin_input_box.grid(column=0, row=0)
@@ -65,8 +65,8 @@ class InputBox():
             return int(data)
         elif self.data_type == 'domain':
             values = []
-            for input_box in self.input_boxes:
-                value = input_box.get()
+            for input_box in self.boxes:
+                value = float(input_box.get())
                 values.append(value)
             return values
         else:
@@ -87,7 +87,6 @@ class Toggle():
     def remove(self):
         for element in self.elements:
             element.destroy()
-        print(self.elements[0]) 
     
     def place(self):
         # Places the button/toggle in the GUI window.
@@ -112,7 +111,10 @@ class Toggle():
         values = []
         if self.status:
             for input_box in self.input_boxes:
-                value = input_box.get()
+                if self.status and self.label != "Velocity Field":
+                    (value) = float(input_box.get())
+                elif self.status and self.label == "Velocity Field":
+                    value = str(self.get_path())
                 values.append(value)
             return True, values
         else:
@@ -126,7 +128,7 @@ class RectangleToggle(Toggle):
 
     def add(self):
         self.window = tk.PanedWindow(root)
-        self.window.grid(row=self.row, column=self.column + 2, sticky="nsew", padx= 10, pady= 10)
+        self.window.grid(row=self.row, column=self.column + 2, sticky="nsew", padx= 10, pady= 20)
         left_pane = tk.Frame(self.window, width=50)
         right_pane = tk.PanedWindow(self.window, width=100)
         self.window.add(left_pane)
@@ -207,14 +209,18 @@ class VelocityFieldToggle(Toggle):
             success_text = tk.Label(text=str(self.file_path))
             success_text.grid(
                 columnspan=10, column=self.column + 3, row=self.row)
+    
+    def get_path(self):
+        return self.file_path
 
     def add(self):
         self.window = tk.PanedWindow(root)
-        self.window.grid(row=self.row, column=self.column + 2, sticky="nsew", columnspan=4, rowspan=1)
+        self.window.grid(row=self.row, column=self.column + 2, sticky="nsew", columnspan=1, rowspan=1)
         self.browse = tk.Button(
                     self.window, text='Open File', command=lambda: self.open_file())
         self.browse.grid(
                     columnspan=1, column=self.column + 2, row=self.row)
+        self.input_boxes.append(self)
         self.elements.append(self.browse)
         
     
@@ -258,9 +264,6 @@ class Task():
             value = input.get_input()
             label = input.label
             dict[label][2] = value
-        for input_box in self.inputs:
-            if (input_box.label == 'Velocity Field'):
-                dict['File Path'][2] = input_box.file_path
         # Storing inputs in JSON File.
         with open(os.path.join(os.path.dirname(__file__), 'input_boxes.json')) as json_file:
             dictionary = json.load(json_file)

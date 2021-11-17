@@ -32,8 +32,18 @@
         ],
         "Domain": [
             "domain",
-            [0.1, 0.1, 0.1, 0.1],
-            [0.1, 0.1, 0.1, 0.1],
+            [
+                0.1,
+                0.1,
+                0.1,
+                0.1
+            ],
+            [
+                0.1,
+                0.1,
+                0.1,
+                0.1
+            ],
             ""
         ],
         "Velocity Field": [
@@ -44,23 +54,26 @@
         ],
         "Add Circle": [
             "toggle",
-            [0.1, 0.1, 0.1, 0.1],
-            [0.1, 0.1, 0.1, 0.1],
+            [
+                0.1,
+                0.1,
+                0.1,
+                0.1
+            ],
+            false,
             "circle"
         ],
         "Add Rectangle": [
             "toggle",
-            [0.1, 0.1, 0.1, 0.1, 0.1],
-            [0.1, 0.1, 0.1, 0.1, 0.1],
+            [
+                0.1,
+                0.1,
+                0.1,
+                0.1,
+                0.1
+            ],
+            false,
             "rectangle"
-        ],
-        "File Path": [
-            "string",
-            "/Users/fredzikry/Documents/GitHub/cmm3-project/velocityCMM3.dat",
-            null,
-            ""
         ]
     }
-
 }
-    
