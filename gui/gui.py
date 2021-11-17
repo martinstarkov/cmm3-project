@@ -15,18 +15,16 @@ off = ImageTk.PhotoImage(file=os.path.join(
     os.path.dirname(__file__), "off.png"))
 
 
-
 class InputBox():
     """This takes every variable type and creates a label and a text box for it. //
     It also has methods to capture and store the data before running the simulation"""
 
-    def __init__(self, column, row, label, data_type, default, column_span=1):
+    def __init__(self, column, row, label, data_type, default):
         self.column = column
         self.row = row
         self.label = label
         self.data_type = data_type
         self.default = default
-        self.column_span = column_span
         self.boxes = []
 
     def place(self):
@@ -34,12 +32,12 @@ class InputBox():
         input_label = tk.Label(root, text=self.label)
         input_label.grid(column=self.column, row=self.row)
         if self.data_type != "domain":
-            self.input_box = tk.Entry(root)
-            self.input_box.insert(0, self.default)
-            self.input_box.grid(column=self.column + 1, row=self.row)
+            self.box = tk.Entry(root)
+            self.box.insert(0, self.default)
+            self.box.grid(column=self.column + 1, row=self.row)
         else:
-            window = tk.PanedWindow(root, borderwidth = 5)
-            window.grid(row=self.row, column=self.column + 1, sticky="nsew")
+            self.window = tk.PanedWindow(root)
+            self.window.grid(row=self.row, column=self.column + 1, sticky="nsew")
             xmin_input_box = tk.Entry(self.window, width=5)
             xmin_input_box.insert(0, self.default[0])
             xmin_input_box.grid(column=0, row=0)
@@ -61,7 +59,7 @@ class InputBox():
     def get_input(self):
         # Takes the input from the entry box and stores it as a class variable.
         if self.data_type == 'integer':
-            data = self.input_box.get()
+            data = self.box.get()
             return int(data)
         elif self.data_type == 'domain':
             values = []
@@ -70,7 +68,7 @@ class InputBox():
                 values.append(value)
             return values
         else:
-            data = self.input_box.get()
+            data = self.box.get()
             return float(data)
 
 class Toggle():
