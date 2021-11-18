@@ -275,17 +275,17 @@ class ToggleInput():
     def __init__(self, toggle_container):
         self.entries = []
         # Create a sub container in the toggle container.
-        self.input_container = tk.Frame(bg="white", bd=0, master=toggle_container)
+        self.input_container = tk.Frame(bg="pink", bd=0, master=toggle_container)
         self.input_container.grid(row=0, column=1, sticky="NSEW")
         pass
     
     def remove(self):
         for widget in self.input_container.winfo_children():
             # Remove all widgets aside from the toggle button.
-            if widget.cget("text") != "toggle_button":
+            toggle_button = widget.winfo_class() == 'Button' and widget.cget("text") == "toggle_button"
+            if not toggle_button:
                 widget.destroy()
-        # TODO: Clear self.entries array here.
-
+        self.entries.clear()
 
 class VelocityInput(ToggleInput):
     # TODO: Make this work.
@@ -297,32 +297,104 @@ class CircleInput(ToggleInput):
     # TODO: Make this work.
     def create(self, field_info):
         pass
+    
+def set_column_sizes(container, relative_sizes):
+    for column, size in enumerate(relative_sizes):
+        container.grid_columnfigure(column, weight=size)
+        
+def set_row_sizes(container, relative_sizes):
+    for row, size in enumerate(relative_sizes):
+        container.grid_rowfigure(row, weight=size)
 
+def create_frame(parent_container, row, column, sticky="NSEW"):
+    frame = tk.Frame(parent_container, bg="white", bd=0)
+    frame.grid(row=row, column=column, sticky=sticky)
+    return frame
+
+def create_label(parent_container, text, row, column, sticky="NSEW"):
+    label = tk.Label(parent_container, text=text, bg="white")
+    label.grid(row=row, column=column, sticky=sticky)
+    return label
+
+def create_entry(parent_container, default_value, row, column, sticky="NSEW"):
+    entry = tk.Entry(parent_container, bg="white", justify="center")
+    entry.grid(row=row, column=column, sticky=sticky)
+    entry.insert(0, default_value)
+    return entry
 
 class RectangleInput(ToggleInput):
     # TODO: Make this work as intended.
     def create(self, field_info):
+        pass
+        # set_row_sizes(self.input_container, [100])
+        # set_column_sizes(self.input_container, [50, 50])
+        # concentration_container = create_frame(self.input_container, 0, 0)
+        # extents_container = create_frame(self.input_container, 0, 1)
+        
+        
+        # concentration_container.grid_rowconfigure(0, weight=100)
+        # concentration_container.grid_columnconfigure(0, weight=50)
+        # concentration_container.grid_columnconfigure(1, weight=50)
+        # concentration_label = tk.Label(text="φ =", bg="white", master=concentration_container)
+        # concentration_label.grid(row=0, column=0)
+        # concentration_entry = tk.Entry(bg="white", master=concentration_container, justify="center")
+        # concentration_entry.insert(0, field_info["default"][len(self.entries) + 2])
+        # concentration_entry.grid(row=0, column=1)
+        # self.entries.append(concentration_entry)
+        
+        # # entries_container.grid_rowconfigure(0, weight=50)
+        # # entries_container.grid_rowconfigure(1, weight=50)
+        # entries_container.grid_columnconfigure(0, weight=1)
+        # entries_container.grid_columnconfigure(1, weight=4, minsize=50)
+        # entries_container.grid_columnconfigure(2, weight=1)
+        
+        # input = tk.Entry(bg="white", justify="center", master=entries_container)
+        # input.insert(0, field_info["default"][3])
+        # input.grid(row=0, column=0, sticky="W")
+        # self.entries.append(input)
+        
+        # label = tk.Label(text="< x <", bg="white", master=entries_container)
+        # label.grid(row=0, column=1, sticky="NSEW")
+        
+        # input = tk.Entry(bg="white", justify="center", master=entries_container)
+        # input.insert(0, field_info["default"][4])
+        # input.grid(row=0, column=2, sticky="E")
+        # self.entries.append(input)
+        
+        # input = tk.Entry(bg="white", justify="center", master=entries_container)
+        # input.insert(0, field_info["default"][5])
+        # input.grid(row=1, column=0, sticky="W")
+        # self.entries.append(input)
+        
+        # label = tk.Label(text="< y <", bg="white", master=entries_container)
+        # label.grid(row=1, column=1, sticky="NSEW")
+        
+        # input = tk.Entry(bg="white", justify="center", master=entries_container)
+        # input.insert(0, field_info["default"][6])
+        # input.grid(row=1, column=2, sticky="E") 
+        # self.entries.append(input) 
+        
         # Array of relative weights for the column widths.
-        widths = [15, 20, 15]
-        # Labels between entry fields.
-        labels = ["< x <", "< y <"]
-        for row, label in enumerate(labels):
-            self.input_container.grid_rowconfigure(row, weight=50)
-            for column, relative_width in enumerate(widths):
-                self.input_container.grid_columnconfigure(column, weight=relative_width, uniform="rectangle_container")
-                # Odd columns are entries.
-                if column % 2 == 0:
-                    input = tk.Entry(bg="white", master=self.input_container, justify="center")
-                    # TODO: Figure out the entries array, right now the issue is that create is called multiple times,
-                    # unlike in the DomainInputField create function, which means most likely the self.remove function
-                    # should also clear the entries array.
-                    #input.insert(0, field_info["default"][len(self.entries)])
-                    #self.entries.append(input)
-                # Even column is a label.
-                else:
-                    input = tk.Label(text=label, bg="white", padx=10, master=self.input_container)
-                # Only add bottom padding to the second row.
-                input.grid(row=row, column=column, pady=10, sticky="EW") 
+        # widths = [20, 60, 20]
+        # # Labels between entry fields.
+        # labels = ["< x <", "< y <"]
+        # for row, label in enumerate(labels):
+        #     entries_container.grid_rowconfigure(row, weight=50)
+        #     for column, relative_width in enumerate(widths):
+        #         entries_container.grid_columnconfigure(column, weight=relative_width)
+        #         # Odd columns are entries.
+        #         if column % 2 == 0:
+        #             input = tk.Entry(bg="white", master=entries_container, justify="center")
+        #             # TODO: Figure out the entries array, right now the issue is that create is called multiple times,
+        #             # unlike in the DomainInputField create function, which means most likely the self.remove function
+        #             # should also clear the entries array.
+        #             input.insert(0, field_info["default"][len(self.entries) + 2])
+        #             self.entries.append(input)
+        #         # Even column is a label.
+        #         else:
+        #             input = tk.Label(text=label, bg="white", master=entries_container)
+        #         # Only add bottom padding to the second row.
+        #         input.grid(row=row, column=column, padx=10, sticky="NSEW") 
 
 
 class ToggleInputField(InputField):
