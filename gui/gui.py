@@ -133,6 +133,37 @@ import json
     #         widgets.destroy()
     #     # TODO replace this with each tasks function.
 
+# Utility functions for easily creating gridded tkinter widgets.
+
+def set_column_sizes(container, relative_sizes, uniform=""):
+    for column, size in enumerate(relative_sizes):
+        container.grid_columnconfigure(column, weight=size, uniform=uniform)
+        
+def set_row_sizes(container, relative_sizes, uniform=""):
+    for row, size in enumerate(relative_sizes):
+        container.grid_rowconfigure(row, weight=size, uniform=uniform)
+
+def create_frame(parent_container, row, column, sticky="NSEW"):
+    frame = tk.Frame(parent_container, bg="white", bd=0)
+    frame.grid(row=row, column=column, sticky=sticky)
+    return frame
+
+def create_label(parent_container, text, row, column, sticky="NSEW"):
+    label = tk.Label(parent_container, text=text, bg="white")
+    label.grid(row=row, column=column, sticky=sticky)
+    return label
+
+def create_entry(parent_container, default_value, row, column, sticky="NSEW", padx=0, pady=0, ipadx=0, ipady=0, **kwargs):
+    entry = tk.Entry(parent_container, bg="white", justify="center", **kwargs)
+    entry.grid(row=row, column=column, padx=padx, pady=pady, ipadx=ipadx, ipady=ipady, sticky=sticky)
+    entry.insert(0, default_value)
+    return entry
+
+def create_button(parent_container, text, row, column, command, sticky="NSEW", padx=0, pady=0, ipadx=0, ipady=0):
+    button = tk.Button(parent_container, text=text, fg="black", bg="pink", command=command)
+    button.grid(row=row, column=column, padx=padx, pady=pady, ipadx=ipadx, ipady=ipady, sticky=sticky)
+    return button
+
 # User interface object to be called at the beginning of the program creation.
 class UserInterface(object):
     def __init__(self, json_filepath):
@@ -209,8 +240,7 @@ class MainMenuButton(object):
     def __init__(self, name, ui, row):
         self.name = name
         self.ui = ui
-        self.button = tk.Button(text=name, fg="black", bg="pink", command=self.press, master=self.ui.container)
-        self.button.grid(row=row, column=0, pady=10, ipady=40, sticky="EW")
+        self.button = create_button(self.ui.container, name, row, 0, self.press, sticky="EW", pady=10, ipady=40)
     def press(self):
         # Whenever a main menu button is pressed, the container is cleared and
         # the label below the logo is set to the name of the main menu button.
@@ -225,10 +255,8 @@ class InputField(object):
         # TODO: Cycle through these later to write to the JSON.
         self.entries = []
         # Create a sub container for the input field and label.
-        self.sub_container = tk.Frame(bg="white", master=ui.container)
-        self.sub_container.grid(row=row, column=0, sticky="NSEW")
-        self.sub_container.grid_columnconfigure(0, weight=50, uniform="sub_container")
-        self.sub_container.grid_columnconfigure(1, weight=50, uniform="sub_container")
+        self.sub_container = create_frame(ui.container, row, 0)
+        set_column_sizes(self.sub_container, [50, 50], uniform="sub_container")
         self.field_info = field_info
         
     def create(self, text):
@@ -240,10 +268,7 @@ class NumericInputField(InputField):
     def create(self, text):
         super().create(text)
         # Creates a simple input parameter box with a default value.
-        input = tk.Entry(bg="white", master=self.sub_container, justify="center")
-        input.insert(0, self.field_info["default"])
-        input.grid(row=0, column=1, pady=10, sticky="NSEW")
-        self.entries.append(input)
+        self.entries.append(create_entry(self.sub_container, self.field_info["default"], 0, 1, pady=10))
 
 
 class DomainInputField(InputField):
@@ -275,9 +300,7 @@ class ToggleInput():
     def __init__(self, toggle_container):
         self.entries = []
         # Create a sub container in the toggle container.
-        self.input_container = tk.Frame(bg="pink", bd=0, master=toggle_container)
-        self.input_container.grid(row=0, column=1, sticky="NSEW")
-        pass
+        self.input_container = create_frame(toggle_container, 0, 1)
     
     def remove(self):
         for widget in self.input_container.winfo_children():
@@ -297,106 +320,26 @@ class CircleInput(ToggleInput):
     # TODO: Make this work.
     def create(self, field_info):
         pass
-    
-def set_column_sizes(container, relative_sizes):
-    for column, size in enumerate(relative_sizes):
-        container.grid_columnfigure(column, weight=size)
-        
-def set_row_sizes(container, relative_sizes):
-    for row, size in enumerate(relative_sizes):
-        container.grid_rowfigure(row, weight=size)
-
-def create_frame(parent_container, row, column, sticky="NSEW"):
-    frame = tk.Frame(parent_container, bg="white", bd=0)
-    frame.grid(row=row, column=column, sticky=sticky)
-    return frame
-
-def create_label(parent_container, text, row, column, sticky="NSEW"):
-    label = tk.Label(parent_container, text=text, bg="white")
-    label.grid(row=row, column=column, sticky=sticky)
-    return label
-
-def create_entry(parent_container, default_value, row, column, sticky="NSEW"):
-    entry = tk.Entry(parent_container, bg="white", justify="center")
-    entry.grid(row=row, column=column, sticky=sticky)
-    entry.insert(0, default_value)
-    return entry
 
 class RectangleInput(ToggleInput):
-    # TODO: Make this work as intended.
     def create(self, field_info):
-        pass
-        # set_row_sizes(self.input_container, [100])
-        # set_column_sizes(self.input_container, [50, 50])
-        # concentration_container = create_frame(self.input_container, 0, 0)
-        # extents_container = create_frame(self.input_container, 0, 1)
+        concentration_container = create_frame(self.input_container, 0, 0)
+        extents_container = create_frame(self.input_container, 0, 1)
         
+        create_label(concentration_container, "φ =", 0, 0)
+        self.entries.append(create_entry(concentration_container, field_info["default"][2], 0, 1, sticky="EW", padx=(0, 5), width=5))
         
-        # concentration_container.grid_rowconfigure(0, weight=100)
-        # concentration_container.grid_columnconfigure(0, weight=50)
-        # concentration_container.grid_columnconfigure(1, weight=50)
-        # concentration_label = tk.Label(text="φ =", bg="white", master=concentration_container)
-        # concentration_label.grid(row=0, column=0)
-        # concentration_entry = tk.Entry(bg="white", master=concentration_container, justify="center")
-        # concentration_entry.insert(0, field_info["default"][len(self.entries) + 2])
-        # concentration_entry.grid(row=0, column=1)
-        # self.entries.append(concentration_entry)
+        self.entries.append(create_entry(extents_container, field_info["default"][3], 0, 0, sticky="EW", width=5))
+        create_label(extents_container, "< x <", 0, 1)
+        self.entries.append(create_entry(extents_container, field_info["default"][4], 0, 2, sticky="EW", width=5))
         
-        # # entries_container.grid_rowconfigure(0, weight=50)
-        # # entries_container.grid_rowconfigure(1, weight=50)
-        # entries_container.grid_columnconfigure(0, weight=1)
-        # entries_container.grid_columnconfigure(1, weight=4, minsize=50)
-        # entries_container.grid_columnconfigure(2, weight=1)
+        self.entries.append(create_entry(extents_container, field_info["default"][5], 1, 0, sticky="EW", width=5))
+        create_label(extents_container, "< y <", 1, 1)
+        self.entries.append(create_entry(extents_container, field_info["default"][6], 1, 2, sticky="EW", width=5))
         
-        # input = tk.Entry(bg="white", justify="center", master=entries_container)
-        # input.insert(0, field_info["default"][3])
-        # input.grid(row=0, column=0, sticky="W")
-        # self.entries.append(input)
+        set_row_sizes(concentration_container, [100])
+        set_row_sizes(extents_container, [50, 50])
         
-        # label = tk.Label(text="< x <", bg="white", master=entries_container)
-        # label.grid(row=0, column=1, sticky="NSEW")
-        
-        # input = tk.Entry(bg="white", justify="center", master=entries_container)
-        # input.insert(0, field_info["default"][4])
-        # input.grid(row=0, column=2, sticky="E")
-        # self.entries.append(input)
-        
-        # input = tk.Entry(bg="white", justify="center", master=entries_container)
-        # input.insert(0, field_info["default"][5])
-        # input.grid(row=1, column=0, sticky="W")
-        # self.entries.append(input)
-        
-        # label = tk.Label(text="< y <", bg="white", master=entries_container)
-        # label.grid(row=1, column=1, sticky="NSEW")
-        
-        # input = tk.Entry(bg="white", justify="center", master=entries_container)
-        # input.insert(0, field_info["default"][6])
-        # input.grid(row=1, column=2, sticky="E") 
-        # self.entries.append(input) 
-        
-        # Array of relative weights for the column widths.
-        # widths = [20, 60, 20]
-        # # Labels between entry fields.
-        # labels = ["< x <", "< y <"]
-        # for row, label in enumerate(labels):
-        #     entries_container.grid_rowconfigure(row, weight=50)
-        #     for column, relative_width in enumerate(widths):
-        #         entries_container.grid_columnconfigure(column, weight=relative_width)
-        #         # Odd columns are entries.
-        #         if column % 2 == 0:
-        #             input = tk.Entry(bg="white", master=entries_container, justify="center")
-        #             # TODO: Figure out the entries array, right now the issue is that create is called multiple times,
-        #             # unlike in the DomainInputField create function, which means most likely the self.remove function
-        #             # should also clear the entries array.
-        #             input.insert(0, field_info["default"][len(self.entries) + 2])
-        #             self.entries.append(input)
-        #         # Even column is a label.
-        #         else:
-        #             input = tk.Label(text=label, bg="white", master=entries_container)
-        #         # Only add bottom padding to the second row.
-        #         input.grid(row=row, column=column, padx=10, sticky="NSEW") 
-
-
 class ToggleInputField(InputField):
     def create(self, text):
         super().create(text)
