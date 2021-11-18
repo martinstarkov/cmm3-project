@@ -1,53 +1,48 @@
 {
     "Custom Specifications": {
-        "Time (s) (int)": {
-            "type": "integer",
-            "default": 1,
-            "user": 1
+        "Time (s) (float)": {
+            "type": "numeric",
+            "default": [1.0]
         },
         "Time Step (s) (float)": {
-            "type": "float",
-            "default": 0.1,
-            "user": 0.1
+            "type": "numeric",
+            "default": [0.01]
         },
         "Diffusivity (float)": {
-            "type": "float",
-            "default": 0.1,
-            "user": 0.1
+            "type": "numeric",
+            "default": [0.1]
         },
         "Particle Count (int)": {
-            "type": "integer",
-            "default": 65000,
-            "user": 65000
+            "type": "numeric",
+            "default": [65000]
         },
-        "Domain": {
+        "Domain (floats)": {
             "type": "domain",
-            "default": [-1.0, 1.0, -1.0, 1.0],
-            "user": [-1.0, 1.0, -1.0, 1.0]
+            "default": [-1.0, 1.0, -1.0, 1.0]
         },
-        "Animated": {
-            "type": "toggle",
-            "default": ["bool", true],
-            "user": ["bool", true],
-            "image": ["off.png", "on.png"]
+        "Cell Size (ints)": {
+            "type": "cell",
+            "default": [64, 64]
         },
-        "Velocity Field": {
-            "type": "toggle",
-            "default": ["field", true, "velocityCMM3.dat"],
-            "user": ["field", true, "velocityCMM3.dat"],
-            "image": ["off.png", "on.png"]
+        "Animated (bool)": {
+            "type": "boolean",
+            "default": [true],
+            "button_image": ["gui/off.png", "gui/on.png"]
         },
-        "Add Circle": {
-            "type": "toggle",
-            "default": ["circle", false, 1.0, 0.4, 0.4, 0.25],
-            "user": ["circle", false, 1.0, 0.4, 0.4, 0.25],
-            "image": ["off.png", "on.png"]
+        "Velocity Field (file)": {
+            "type": "field",
+            "default": [true, "velocityCMM3.dat"],
+            "button_image": ["gui/off.png", "gui/on.png"]
         },
-        "Add Rectangle": {
-            "type": "toggle",
-            "default": ["rectangle", false, 1.0, -1.0, 0.0, -1.0, 1.0],
-            "user": ["rectangle", false, 1.0, -1.0, 0.0, -1.0, 1.0],
-            "image": ["off.png", "on.png"]
+        "Add Circle (int, floats)": {
+            "type": "circle",
+            "default": [false, 1, 0.4, 0.4, 0.1],
+            "button_image": ["gui/off.png", "gui/on.png"]
+        },
+        "Add Rectangle (int, floats)": {
+            "type": "rectangle",
+            "default": [false, 1, -1.0, 0.0, -1.0, 1.0],
+            "button_image": ["gui/off.png", "gui/on.png"]
         }
     }
 }
