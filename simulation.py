@@ -17,6 +17,7 @@ class Simulation(object):
                  particle_count, cell_width, cell_height, diffusivity, 
                  color_map=None, velocity_coordinates=None, velocity_vectors=None):
         self.dt = dt
+        assert dt <= t_max, "Time step cannot exceed maximum time"
         self.steps = int(t_max / self.dt) + 1
         self.min = np.array([x_min, y_min])
         self.max = np.array([x_max, y_max])
@@ -33,19 +34,6 @@ class Simulation(object):
     def __generate_random_particles(self):
         self.coordinates = np.random.rand(self.particle_count, 2) * (self.max - self.min) + self.min
         self.particles = np.zeros(self.particle_count, dtype=int)
-        
-    def __setup_plot(self):
-        # TODO: Possibly add more axis / plot formatting here.
-        self.figure, self.axes = plt.subplots()
-        self.axes.set_xlim(self.min[X], self.max[X])
-        self.axes.set_ylim(self.min[Y], self.max[Y])
-        if self.cmap is not None:
-            self.figure.colorbar(matplotlib.cm.ScalarMappable(cmap=self.cmap))
-        self.scatter = self.axes.scatter(self.coordinates[:, X], self.coordinates[:, Y])
-        if self.cmap is not None:
-            self.scatter.set_cmap(self.cmap)
-        self.axes.set_title("Time: " + str(0))
-        self.scatter.set_array(self.particles)
         
     def __lagrangian(self, velocities):
         # TODO: Check  that this formula matches the one in the slides.
@@ -65,11 +53,6 @@ class Simulation(object):
         else:
             self.__lagrangian(0)
         self.__boundary_conditions()
-    
-    def __particle_animation(self, step: int):
-        self.__update()
-        self.axes.set_title("Time: " + str(round(step * self.dt, 3)))
-        self.scatter.set_offsets(self.coordinates)
 
     def __concentration_animation(self, step: int):
         self.__update()
@@ -96,19 +79,7 @@ class Simulation(object):
         self.concentrations[indexes] = weights
         self.concentrations = self.concentrations.reshape(np.flip(self.cell_size))
         
-    def animated_particle(self):
-        self.__setup_plot()
-        anim = animation.FuncAnimation(self.figure, self.__particle_animation, frames=self.steps, interval=1, repeat=False)    
-        plt.show()
-        
-    def static_particle(self):
-        self.simulate()
-            
-        self.__setup_plot()
-        self.axes.set_title("Time: " + str(round((self.steps - 1) * self.dt, 3)))
-        plt.show()
-        
-    def __setup_concentration(self, animated: bool):
+    def __setup_concentration_plot(self, animated: bool):
         self.figure, self.axes = plt.subplots()
         self.calculate_concentrations()
         self.heatmap = self.axes.imshow(self.concentrations, animated=animated, extent=(self.min[X], self.max[X], self.min[Y], self.max[Y]))
@@ -117,14 +88,14 @@ class Simulation(object):
             self.figure.colorbar(matplotlib.cm.ScalarMappable(cmap=self.cmap))
 
     def animated_concentration(self):
-        self.__setup_concentration(True)
+        self.__setup_concentration_plot(True)
         self.axes.set_title("Time: " + str(0))
         anim = animation.FuncAnimation(self.figure, self.__concentration_animation, frames=self.steps, interval=1, repeat=False)    
         plt.show()   
 
     def static_concentration(self):
         self.simulate()
-        self.__setup_concentration(False)
+        self.__setup_concentration_plot(False)
         self.axes.set_title("Time: " + str(round((self.steps - 1) * self.dt, 3)))
         plt.show()
 
@@ -134,9 +105,9 @@ class Simulation(object):
                        self.velocity_vectors[:, X], self.velocity_vectors[:, Y])
             plt.show()
 
-    def add_rectangle(self, bottom_left, size, value: int):
-        bound_x = np.logical_and(self.coordinates[:, X] >= bottom_left[X], self.coordinates[:, X] <= bottom_left[X] + size[X])
-        bound_y = np.logical_and(self.coordinates[:, Y] >= bottom_left[Y], self.coordinates[:, Y] <= bottom_left[Y] + size[Y])
+    def add_rectangle(self, minimum, maximum, value: int):
+        bound_x = np.logical_and(self.coordinates[:, X] >= minimum[X], self.coordinates[:, X] <= maximum[X])
+        bound_y = np.logical_and(self.coordinates[:, Y] >= minimum[Y], self.coordinates[:, Y] <= maximum[Y])
         self.particles = np.where(np.logical_and(bound_x, bound_y), value, self.particles)
         
     def add_circle(self, center, radius, value: int):
