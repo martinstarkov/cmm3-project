@@ -18,17 +18,18 @@ import simulation
 if sys_pf == 'darwin':
     import matplotlib
     matplotlib.use("TkAgg")
+    
+X = 0
+Y = 0
 
 # Utility functions for easily creating gridded tkinter widgets.
 
-def set_column_sizes(container, relative_sizes, uniform=""):
-    for column, size in enumerate(relative_sizes):
-        container.grid_columnconfigure(column, weight=size, uniform=uniform)
+def set_grid_sizes(container, rows=[], columns=[], uniform_row="", uniform_column=""):
+    for row, size in enumerate(rows):
+        container.grid_rowconfigure(row, weight=size, uniform=uniform_row)
+    for column, size in enumerate(columns):
+        container.grid_columnconfigure(column, weight=size, uniform=uniform_column)
         
-def set_row_sizes(container, relative_sizes, uniform=""):
-    for row, size in enumerate(relative_sizes):
-        container.grid_rowconfigure(row, weight=size, uniform=uniform)
-
 def create_frame(parent_container, row, column, sticky="NSEW"):
     frame = tk.Frame(parent_container, bg="white", bd=0)
     frame.grid(row=row, column=column, sticky=sticky)
@@ -57,22 +58,25 @@ def create_image(parent_container, path, row, column, sticky="NSEW"):
     image.grid(row=row, column=column, sticky=sticky)
     return image
 
+def clear_widgets(container):
+    if container is not None:
+        for widget in container.winfo_children():
+            widget.destroy()
+
 # User interface object to be called at the beginning of the program creation.
 class UserInterface(object):
-    def __init__(self, json_filepath):
-        self.json_filepath = json_filepath
+    def __init__(self, json_file_path):
+        self.json_file_path = json_file_path
         # Create Tkinter window of given size and grid configuration.
         self.root = tk.Tk()
         self.root.geometry("700x700+0+0")
         self.root.configure(bg="white")
-        set_column_sizes(self.root, [100], uniform="root")
-        set_row_sizes(self.root, [100], uniform="root")
+        set_grid_sizes(self.root, [100], [100], uniform_row="root", uniform_column="root")
         self.frame = create_frame(self.root, 0, 0)
-        set_column_sizes(self.frame, [20, 60, 20], uniform="frame")
-        set_row_sizes(self.frame, [20, 7, 66, 7], uniform="frame")
+        set_grid_sizes(self.frame, [20, 7, 66, 7], [20, 60, 20], uniform_row="frame", uniform_column="frame")
         self.container = None
         # Load JSON file into a data object and populate the window.
-        with open(self.json_filepath) as json_file:
+        with open(self.json_file_path) as json_file:
             self.data = json.load(json_file)
             self.create_header()
             self.create_menu_buttons()
@@ -87,10 +91,10 @@ class UserInterface(object):
     
     # Creates the main menu navigation buttons.
     def create_menu_buttons(self):
-        self.clear_container()
+        clear_widgets(self.container)
+        self.label["text"] = self.label_text
         self.create_container()
-        set_column_sizes(self.container, [100], uniform="container")
-        set_row_sizes(self.container, [33, 33, 33], uniform="container")
+        set_grid_sizes(self.container, [33, 33, 33], [100], uniform_row="container", uniform_column="container")
         # Create individual buttons in the container.
         CustomConditions("Custom Conditions", self, 0)
         ValidationTasks("Validation Tasks", self, 1)
@@ -100,13 +104,6 @@ class UserInterface(object):
     def create_container(self):
         self.container = create_frame(self.frame, 2, 1)
         
-    # Clears the container cell.
-    def clear_container(self):
-        if self.container is not None:
-            for widget in self.container.winfo_children():
-                widget.destroy()
-        self.label["text"] = self.label_text
-        
     def create_plot(self, figure, reset_function, back_function):
         canvas = FigureCanvasTkAgg(figure, master=self.container)
         canvas.get_tk_widget().grid(row=0, column=0, padx=0, pady=0)
@@ -114,8 +111,7 @@ class UserInterface(object):
         create_button(self.container, "Reset Plot", 1, 0, reset_function, pady=(5, 0), ipady=15, fg="black", bg="pink")
         create_button(self.container, "Back", 2, 0, back_function, pady=(5, 0), ipady=15, fg="black", bg="pink")
         
-        set_row_sizes(self.container, [80, 4, 4])
-        set_column_sizes(self.container, [100])
+        set_grid_sizes(self.container, [80, 4, 4], [100])
         return canvas
       
 # Abstract class which represents an input row.
@@ -127,7 +123,7 @@ class InputField(object):
         self.entries = []
         # Create a sub container for the input field and label.
         self.sub_container = create_frame(ui.container, row, 0)
-        set_column_sizes(self.sub_container, [50, 50], uniform="sub_container")
+        set_grid_sizes(self.sub_container, columns=[50, 50], uniform_row="sub_container", uniform_column="sub_container")
         
     def create(self, text):
         self.key = text
@@ -138,7 +134,7 @@ class NumericInputField(InputField):
     def create(self, text):
         super().create(text)
         # Creates a simple input parameter box with a default value.
-        self.entries.append(create_entry(self.sub_container, self.field_info["default"], 0, 1, width=20))
+        self.entries = create_entry(self.sub_container, self.field_info["default"], 0, 1, width=20)
 
 
 class DomainInputField(InputField):
@@ -147,16 +143,14 @@ class DomainInputField(InputField):
         defaults = self.field_info["default"]
         domain_container = create_frame(self.sub_container, 0, 1)
         
-        self.entries.append(create_entry(domain_container, defaults[0], 0, 0, sticky="EW", width=5))
         create_label(domain_container, "≤ x ≤", 0, 1)
-        self.entries.append(create_entry(domain_container, defaults[1], 0, 2, sticky="EW", width=5))
-        
-        self.entries.append(create_entry(domain_container, defaults[2], 1, 0, sticky="EW", width=5))
         create_label(domain_container, "≤ y ≤", 1, 1)
-        self.entries.append(create_entry(domain_container, defaults[3], 1, 2, sticky="EW", width=5))
+        self.entries.append([create_entry(domain_container, defaults[0][X], 0, 0, sticky="EW", width=5),
+                             create_entry(domain_container, defaults[0][Y], 1, 0, sticky="EW", width=5)])
+        self.entries.append([create_entry(domain_container, defaults[1][X], 0, 2, sticky="EW", width=5),
+                             create_entry(domain_container, defaults[1][Y], 1, 2, sticky="EW", width=5)])
         
-        set_row_sizes(domain_container, [50, 50])
-        set_column_sizes(domain_container, [40, 20, 40])
+        set_grid_sizes(domain_container, [50, 50], [40, 20, 40])
         
 class CellInputField(InputField):
     def create(self, text):
@@ -165,162 +159,105 @@ class CellInputField(InputField):
         cell_container = create_frame(self.sub_container, 0, 1)
         
         create_label(cell_container, u'Nₓ =', 0, 0)
-        self.entries.append(create_entry(cell_container, defaults[0], 0, 1, sticky="EW", width=5))
-        
         create_label(cell_container, u'Nᵧ =', 1, 0)
-        self.entries.append(create_entry(cell_container, defaults[1], 1, 1, sticky="EW", width=5))
+        self.entries.append([create_entry(cell_container, defaults[X], 0, 1, sticky="EW", width=5),
+                             create_entry(cell_container, defaults[Y], 1, 1, sticky="EW", width=5)])
         
-        set_row_sizes(cell_container, [50, 50])
-        set_column_sizes(cell_container, [15, 85])
+        set_grid_sizes(cell_container, [50, 50], [15, 85])
 
-# Abstract class for toggleable input containers.
-class ToggleInput():
-    def __init__(self, toggle_container):
-        self.entries = []
-        # Create a sub container in the toggle container.
-        self.input_container = create_frame(toggle_container, 0, 1)
-        set_row_sizes(self.input_container, [100])
+class ToggleInputField(InputField):
+    def create(self, text):
+        super().create(text)
+        self.defaults = self.field_info["default"]
+        container = create_frame(self.sub_container, 0, 1)
+        set_grid_sizes(container, [100], [20, 80], uniform_column="toggle_container")
+        self.toggle_container = create_frame(container, 0, 0)
+        set_grid_sizes(self.toggle_container, [100], [100])
+        self.input_container = create_frame(container, 0, 1)
+        self.state = tk.BooleanVar(value=self.defaults[0])
+        toggle_button = tk.Checkbutton(self.toggle_container, bg="white", activebackground="white", \
+                                       variable=self.state, onvalue=True, offvalue=False, command=self.update)
+        toggle_button.grid(row=0, column=0, sticky="NSEW")
+        if not self.state.get(): # By default, checkbutton starts checked.
+            toggle_button.deselect()
+        self.entries = [self.state.get()]
+        self.update()
+
+    # Updates the state of the widget containers and entry state.
+    def update(self):
+        if self.state.get():
+            self.appear()
+        else:
+            self.disappear()
+        self.entries[0] = self.state.get()
     
-    def remove(self):
-        for widget in self.input_container.winfo_children():
-            # Remove all widgets aside from the toggle button.
-            toggle_button = widget.winfo_class() == 'Button' and widget.cget("text") == "toggle_button"
-            if not toggle_button:
-                widget.destroy()
-        self.entries.clear()
-
-class VelocityInput(ToggleInput):
-    def __init__(self, toggle_container, update_function):
-        super().__init__(toggle_container)
-        self.update_function = update_function
+    # Nothing for boolean toggles, can be overriden in child classes.
+    def appear(self):
+        pass
         
-    def create(self, field_info):
-        defaults = field_info["default"]
-        set_column_sizes(self.input_container, [100])
+    # Removes all the non toggle button widgets.
+    def disappear(self):
+        clear_widgets(self.input_container)
+        self.entries = [self.state.get()]
+
+class VelocityInputField(ToggleInputField):
+    def appear(self):
+        set_grid_sizes(self.input_container, columns=[100])
         file_container = create_frame(self.input_container, 0, 0)
         
         create_button(file_container, "Open File", 0, 0, self.open_file)
+
+        self.path_label = create_label(file_container, "File: " + self.defaults[1], 1, 0)
+        self.entries.append(os.path.join(os.path.dirname(__file__), self.defaults[1]))
         
-        default_file = defaults[1]
-        self.path_label = create_label(file_container, "File: " + default_file, 1, 0)
-        self.set_file(default_file, True)
-        
-        set_row_sizes(file_container, [50, 50])
-        set_column_sizes(file_container, [100])
+        set_grid_sizes(file_container, [50, 50], [100])
         
     def open_file(self):
         file = askopenfile(mode='r', filetypes=[('Velocity Field Data Files', '*.dat')])
         if file is not None:
-            self.set_file(file.name)
+            self.path_label["text"] = "File: " + os.path.basename(file.name)
+            self.entries[1] = file.name
             file.close()
     
-    def set_file(self, file, relative=False):
-        # Deal with relative file paths.
-        if relative:
-            file = os.path.join(os.path.dirname(__file__), file)
-        # Update label with file name.
-        self.path_label["text"] = "File: " + os.path.basename(file)
-        self.entries = [file]
-        self.update_function()
-    
-    
-class CircleInput(ToggleInput):
-    def create(self, field_info):
-        defaults = field_info["default"]
-        set_column_sizes(self.input_container, [50, 50])
+class CircleInputField(ToggleInputField):
+    def appear(self):
+        set_grid_sizes(self.input_container, columns=[50, 50])
         concentration_container = create_frame(self.input_container, 0, 0)
         circle_container = create_frame(self.input_container, 0, 1)
         
         create_label(concentration_container, "φ =", 1, 0)
         create_label(concentration_container, "", 0, 0)
-        self.entries.append(create_entry(concentration_container, defaults[1], 1, 1, sticky="EW", padx=(0, 5), width=5))
-        
         create_label(circle_container, "x", 0, 0)
         create_label(circle_container, "y", 0, 1)
         create_label(circle_container, "radius", 0, 2)
-        self.entries.append(create_entry(circle_container, defaults[2], 1, 0, sticky="EW", width=5))
-        self.entries.append(create_entry(circle_container, defaults[3], 1, 1, sticky="EW", width=5))
-        self.entries.append(create_entry(circle_container, defaults[4], 1, 2, sticky="EW", width=5))
         
-        set_row_sizes(concentration_container, [50, 50])
-        set_row_sizes(circle_container, [50, 50])
-        set_column_sizes(concentration_container, [40, 60])
-        set_column_sizes(circle_container, [33, 33, 33])
+        self.entries.append(create_entry(concentration_container, self.defaults[1], 1, 1, sticky="EW", padx=(0, 5), width=5))
+        self.entries.append([create_entry(circle_container, self.defaults[2][X], 1, 0, sticky="EW", width=5),
+                             create_entry(circle_container, self.defaults[2][Y], 1, 1, sticky="EW", width=5)])
+        self.entries.append(create_entry(circle_container, self.defaults[3], 1, 2, sticky="EW", width=5))
+        
+        set_grid_sizes(concentration_container, [50, 50], [40, 60])
+        set_grid_sizes(circle_container, [50, 50], [33, 33, 33])
 
-class RectangleInput(ToggleInput):
-    def create(self, field_info):
-        defaults = field_info["default"]
-        set_column_sizes(self.input_container, [50, 50])
+class RectangleInputField(ToggleInputField):
+    def appear(self):
+        set_grid_sizes(self.input_container, columns=[50, 50])
         concentration_container = create_frame(self.input_container, 0, 0)
         extents_container = create_frame(self.input_container, 0, 1)
         
         create_label(concentration_container, "φ =", 0, 0)
-        self.entries.append(create_entry(concentration_container, defaults[1], 0, 1, sticky="EW", padx=(0, 5), width=5))
-        
-        self.entries.append(create_entry(extents_container, defaults[2], 0, 0, sticky="EW", width=5))
         create_label(extents_container, "≤ x ≤", 0, 1)
-        self.entries.append(create_entry(extents_container, defaults[3], 0, 2, sticky="EW", width=5))
-        
-        self.entries.append(create_entry(extents_container, defaults[4], 1, 0, sticky="EW", width=5))
         create_label(extents_container, "≤ y ≤", 1, 1)
-        self.entries.append(create_entry(extents_container, defaults[5], 1, 2, sticky="EW", width=5))
         
-        set_row_sizes(concentration_container, [100])
-        set_row_sizes(extents_container, [50, 50])
-        set_column_sizes(concentration_container, [40, 60])
-        set_column_sizes(extents_container, [33, 33, 33])
+        self.entries.append(create_entry(concentration_container, self.defaults[1], 0, 1, sticky="EW", padx=(0, 5), width=5))
+        self.entries.append([create_entry(extents_container, self.defaults[2][X], 0, 0, sticky="EW", width=5),
+                             create_entry(extents_container, self.defaults[2][Y], 0, 2, sticky="EW", width=5)])
+        self.entries.append([create_entry(extents_container, self.defaults[3][X], 1, 0, sticky="EW", width=5),
+                             create_entry(extents_container, self.defaults[3][Y], 1, 2, sticky="EW", width=5)])
         
-class ToggleInputField(InputField):
-    def create(self, text):
-        super().create(text)
-        # Create images for on and off state of toggle button.
-        self.off = ImageTk.PhotoImage(file=os.path.join(os.path.dirname(__file__), self.field_info["button_image"][0]))
-        self.on = ImageTk.PhotoImage(file=os.path.join(os.path.dirname(__file__), self.field_info["button_image"][1]))
-        # Default state of the button
-        self.state = self.field_info["default"][0]
-        toggle_container = create_frame(self.sub_container, 0, 1)
-        set_row_sizes(toggle_container, [100])
-        set_column_sizes(toggle_container, [20, 80], uniform="toggle_container")
-        self.button = create_button(toggle_container, "toggle_button", 0, 0, self.toggle, image=self.get_image(), bg="white", activebackground="white", bd=0)
-        
-        # Type of the toggle button
-        type = self.field_info["type"]
-        # Default input is animation toggle (just a button, hence no class type).
-        self.input = None
-        if type == "field":
-            self.input = VelocityInput(toggle_container, self.update_entries)
-        elif type == "circle":
-            self.input = CircleInput(toggle_container)
-        elif type == "rectangle":
-            self.input = RectangleInput(toggle_container)
-            
-        self.update_visibility()
-            
-    # Returns the image of the button for the given state.
-    def get_image(self):
-        return self.on if self.state else self.off
-    
-    # Toggles the internal state of the button.
-    def toggle(self):
-        self.state = not self.state
-        self.update_visibility()
-        self.button.config(image=self.get_image())
-    
-    # Updates the visibility of the toggle input container contents. 
-    def update_visibility(self):
-        if self.input is not None:
-            if self.state:
-                self.input.create(self.field_info)
-            else:
-                self.input.remove()
-        self.update_entries()
-            
-    def update_entries(self):
-        if self.input is not None and self.state:
-            self.entries = [self.state] + self.input.entries
-        else:
-            self.entries = [self.state]
-     
+        set_grid_sizes(concentration_container, [100], [40, 60])
+        set_grid_sizes(extents_container, [50, 50], [33, 33, 33])
+           
 # Abstract class which represents main menu buttons.
 class MainMenuButton(object):
     def __init__(self, name, ui, row):
@@ -330,9 +267,19 @@ class MainMenuButton(object):
     def press(self):
         # Whenever a main menu button is pressed, the container is cleared and
         # the label below the logo is set to the name of the main menu button.
-        self.ui.clear_container()
+        clear_widgets(self.ui.container)
         self.ui.label["text"] = self.name
-          
+
+type_dictionary = {
+    "numeric": NumericInputField,
+    "cell": CellInputField,
+    "domain": DomainInputField,
+    "boolean": ToggleInputField,
+    "field": VelocityInputField,
+    "circle": CircleInputField,
+    "rectangle": RectangleInputField,
+}
+    
 class CustomConditions(MainMenuButton):
     def press(self):
         super().press()
@@ -343,7 +290,7 @@ class CustomConditions(MainMenuButton):
         # Count the number of input fields and add 2 rows for the run and back buttons.
         row_count = len(input_dictionary.keys()) + 2
         relative_height = int(100 / row_count)
-        set_row_sizes(self.ui.container, np.full(row_count, relative_height))
+        set_grid_sizes(self.ui.container, rows=np.full(row_count, relative_height))
         
         for row, (key, field_info) in enumerate(input_dictionary.items()):
             self.create_input_object(key, field_info, row)
@@ -352,44 +299,60 @@ class CustomConditions(MainMenuButton):
         create_button(self.ui.container, "Back", row_count, 0, self.ui.create_menu_buttons, pady=(5, 0), ipady=10, fg="black", bg="pink")
         
     def create_input_object(self, text, field_info, row):
-        type = field_info["type"]
-        if type == "numeric":
-            input = NumericInputField(self.ui, field_info, row)
-        elif type == "cell":
-            input = CellInputField(self.ui, field_info, row)
-        elif type == "domain":
-            input = DomainInputField(self.ui, field_info, row)
-        elif type == "boolean" or type == "field" or type == "circle" or type == "rectangle":
-            input = ToggleInputField(self.ui, field_info, row)
+        input = type_dictionary[field_info["type"]](self.ui, field_info, row)
         input.create(text)
         self.inputs.append(input)
         
+    def get_entry_value(self, entry):
+        if not isinstance(entry, bool) and not isinstance(entry, str):
+            entry = entry.get()
+        return entry
+    
+    def set_value(self, key, value):
+        try:
+            self.outputs[key] = value
+            return True
+        except Exception as e:
+            type_validation = False
+            messagebox.showerror('error', e)
+        return False
+    
+    def loop_entries(self, keys, defaults, entries):
+        for index, entry in enumerate(entries):
+            if isinstance(entry, list):
+                get_entries = lambda x: self.get_entry_value(x)
+                inner_entries = np.vectorize(get_entries)(np.array(entry))
+                for inner_entry in inner_entries:
+                    self.set_value(keys[index], type(defaults[index])(self.get_entry_value(entry)))
+            else:
+                self.set_value(keys[index], type(defaults[index])(self.get_entry_value(entry)))
+        
     def run(self):
-        # TODO: Convert ouputs to dictionary where key is retrieved from json and value is output.
-        # This will drastically simplify the code and make it much clearer.
-        self.outputs = []
+        #TODO: Convert ouputs to dictionary where key is retrieved from json and value is output.
+        #This will drastically simplify the code and make it much clearer.
+        self.outputs = {}
         type_validation = True
         for input in self.inputs:
-            entry_outputs = []
-            types = []
-            for key in input.field_info["default"]:
-                types.append(type(key))
-            for index, entry in enumerate(input.entries):
-                if isinstance(entry, bool) or isinstance(entry, str):
-                    entry_outputs.append(types[index](entry))
-                elif entry.winfo_class() == 'Entry':
-                    try:
-                        entry_outputs.append(types[index](entry.get()))
-                    except Exception as e:
-                        type_validation = False
-                        messagebox.showerror('error', e)
-                        
-            self.outputs.append(entry_outputs)
-        if type_validation and self.validation():
-            self.setup()
+            defaults = input.field_info["default"]
+            keys = input.field_info["key"]
+            if isinstance(input.entries, list):
+                assert len(input.entries) > 0, "Entries length must be greater than 0"
+                if isinstance(input.entries[0], bool): # Toggle entry.
+                    toggle = bool(input.entries[0])
+                    self.outputs[keys[0]] = toggle
+                    if toggle and len(input.entries) > 1:
+                        print("Toggle: " + str(input.entries[1:]))
+                else: # Other non-toggle entry.
+                    pass
+                    print("Non-toggle: " + str(input.entries))
+            else:
+                type_validation &= self.set_value(keys, type(defaults)(self.get_entry_value(input.entries)))
+        print(self.outputs)
+        # if type_validation and self.validation():
+        #    self.setup()
         
     def setup(self):
-        self.ui.clear_container()
+        clear_widgets(self.ui.container)
         time_max = self.outputs[0][0]
         self.ui.label["text"] = self.name
         animated = self.outputs[6][0]

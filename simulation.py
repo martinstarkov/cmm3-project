@@ -7,6 +7,8 @@ import os
 
 # TODO: Add short description at the top of this file.
 # TODO: BUG Check: Concentration vs particle fields spin in opposite directions.
+# TODO: BUG: Fix and check spin direction with velocity field. May need to rotate concentration field 90 degrees.
+# TODO: BUG: Fix patch placement.
 
 X = 0
 Y = 1
