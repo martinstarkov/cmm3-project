@@ -15,8 +15,10 @@ reference_data = reference_func(np.linspace(-1,1,64))
 
 # Array of values of different numbers of particles, lower values are repeated more often for accuracy
 particle_divisions = 50
-particle_array = np.linspace(1000, 30000, num = particle_divisions, dtype=int)
-#np.logspace(2, 4, particle_divisions, dtype=int)
+particle_array = np.logspace(2, 4, particle_divisions, dtype=int)
+# np.linspace(1000, 30000, num = particle_divisions, dtype=int)
+# np.logspace(2, 4, particle_divisions, dtype=int)
+
 num_dts = 10
 dts = np.linspace(0.001, 0.1, num = num_dts)
 
@@ -90,26 +92,20 @@ plt.grid()
 plt.show()
 
 ################################################################################################################################
-x = particle_array[10:]
-print(x.shape)
-y = np.reshape(rmse_array, (particle_divisions, num_dts))[10:]
-print(y[:,0].shape)
+x = particle_array
+y = np.reshape(rmse_array, (particle_divisions, num_dts))
 
 def func(t, a, b):
     return a*t**b
 
 # Plotting the log graph
-# m, b = np.polyfit(x, y, 1, w=np.sqrt(y[0][0]))
-
-
-
+# m, b = np.polyfit(x, y, 1, w=np.sqrt(y[0][0]))[15:]
 plt.figure(figsize=(8, 6))
 for index, dt in enumerate(dts):
-    plt.scatter(x, rmse_array[index][10:], label = 'DT: ' + str(round(dt, 2)))
+    plt.scatter(x, rmse_array[index], label = 'DT: ' + str(round(dt, 2)))
 for dt in range(num_dts):
-    popt, pcov = curve_fit(lambda t,a,b: a*t**b,  x,  y[:,dt])
+    popt, pcov = curve_fit(func,  x,  y[:,dt], p0=(4, 0.1))
     plt.plot(x, func(x, *popt))
-#     plt.plot(x, b[dt] + m[dt]*(x))
 plt.legend()
 plt.yscale('log')
 plt.xscale('log')
