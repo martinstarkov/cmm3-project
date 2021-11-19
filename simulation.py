@@ -5,8 +5,8 @@ import matplotlib.pyplot as plt
 import math
 import os
 
-# TODO: Make colors options for the user (in case of color blindness) by passing the dictionary accessors as function parameters.
-# TODO: BUG: Concentration vs particle fields spin in opposite directions.
+# TODO: Add short description at the top of this file.
+# TODO: BUG Check: Concentration vs particle fields spin in opposite directions.
 
 X = 0
 Y = 1
@@ -91,11 +91,16 @@ class Simulation(object):
         normalized = (self.coordinates - self.min) / (self.max - self.min)
         # Convert domain to [0, 0] -> [N_x - 1, N_y - 1] integer domain.
         cells = np.round(normalized * (self.cell_size - 1)).astype(int)
+        # Count the number of particles in each unique cell.
         unique, occurences, count = np.unique(cells, return_inverse=True, return_counts=True, axis=0)
+        # Get the average of the particles as the concentration value
         weights = np.bincount(occurences, self.particles) / count
-        # Flattened index in unique array.
+        # Determine flattened indexes of unique array.
         indexes = unique[:, X] + unique[:, Y] * self.cell_size[Y]
+        # Set concentrations at those indexes to the calculated averages
+        # for their corresponding cells.
         self.concentrations[indexes] = weights
+        # Turn the concentration array back into its original shape (flip required due to reshape axis order).
         self.concentrations = self.concentrations.reshape(np.flip(self.cell_size))
         
     def __setup_concentration_plot(self, animated: bool):

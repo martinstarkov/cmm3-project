@@ -11,6 +11,9 @@ import os
 import json
 import simulation
 
+# TODO: Add requirements.txt file.
+# TODO: Add short description at the top of this file.
+
 # Tkinter embedded plot fix for macOS.
 if sys_pf == 'darwin':
     import matplotlib
@@ -432,7 +435,7 @@ class CustomConditions(MainMenuButton):
         if self.outputs[9][0]: # Rectangle field is being used.
             valid &= self.check(self.outputs[9][1] == 0 or self.outputs[9][1] == 1, "Rectangle concentration must start as 0 or 1 (red or blue)")
         return valid
-    
+
 # TODO: Make this work.
 class ValidationTasks(MainMenuButton):
     def press(self):
