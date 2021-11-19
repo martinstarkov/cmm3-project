@@ -1,5 +1,5 @@
 {
-    "Custom Specifications": {
+    "Custom Conditions": {
         "Time (s) (float)": {
             "type": "numeric",
             "default": [1.0]
@@ -41,7 +41,7 @@
         },
         "Add Rectangle (int, floats)": {
             "type": "rectangle",
-            "default": [false, 1, -1.0, 0.0, -1.0, 1.0],
+            "default": [true, 1, -1.0, 0.0, -1.0, 1.0],
             "button_image": ["gui/off.png", "gui/on.png"]
         }
     }
