@@ -55,7 +55,6 @@ def create_image(parent_container, path, row, column, sticky="NSEW"):
     return image
 
 # User interface object to be called at the beginning of the program creation.
-# TODO: Fix init to use the new create widget functions.
 class UserInterface(object):
     def __init__(self, json_filepath):
         self.json_filepath = json_filepath
@@ -63,18 +62,11 @@ class UserInterface(object):
         self.root = tk.Tk()
         self.root.geometry("700x700+0+0")
         self.root.configure(bg="white")
-        self.root.grid_columnconfigure(0, weight=100, uniform="root")
-        self.root.grid_rowconfigure(0, weight=100, uniform="root")
-        self.frame = tk.Frame(self.root, bg="white")
-        self.frame.grid(row=0, column=0, sticky="NSEW")
-        # Divide window into 3x4 grid with a relative (out of 100) size for each cell.
-        column_sizes = [20, 60, 20]
-        row_sizes = [20, 7, 66, 7]
-        # Configure the relative widths and heights of the grid columns and rows respectively.
-        for column, relative_width in enumerate(column_sizes):
-            self.frame.grid_columnconfigure(column, weight=relative_width, uniform="frame")
-        for row, relative_height in enumerate(row_sizes):
-            self.frame.grid_rowconfigure(row, weight=relative_height, uniform="frame")
+        set_column_sizes(self.root, [100], uniform="root")
+        set_row_sizes(self.root, [100], uniform="root")
+        self.frame = create_frame(self.root, 0, 0)
+        set_column_sizes(self.frame, [20, 60, 20], uniform="frame")
+        set_row_sizes(self.frame, [20, 7, 66, 7], uniform="frame")
         self.container = None
         # Load JSON file into a data object and populate the window.
         with open(self.json_filepath) as json_file:
@@ -82,7 +74,6 @@ class UserInterface(object):
             self.create_header()
             self.create_menu_buttons()
             self.root.mainloop()
-
         
     def create_header(self):
         # Create the GUI logo.
@@ -130,7 +121,6 @@ class InputField(object):
     def __init__(self, ui, field_info, row):
         self.field_info = field_info
         # Used for storing the entry fields of the given input field.
-        # TODO: Cycle through these later to write to the JSON.
         self.entries = []
         # Create a sub container for the input field and label.
         self.sub_container = create_frame(ui.container, row, 0)
@@ -372,6 +362,8 @@ class CustomConditions(MainMenuButton):
         self.inputs.append(input)
         
     def run(self):
+        # TODO: Convert ouputs to dictionary where key is retrieved from json and value is output.
+        # This will drastically simplify the code and make it much clearer.
         self.outputs = []
         type_validation = True
         for input in self.inputs:
