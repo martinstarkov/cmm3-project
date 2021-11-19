@@ -79,7 +79,7 @@ class Simulation(object):
 
     def simulate(self):
         for step in range(self.steps):
-            print("Simulation time: " + str(round(step * self.dt, 3)))
+            # print("Simulation time: " + str(round(step * self.dt, 3)))
             self.__update()
             
     def calculate_concentrations(self):
