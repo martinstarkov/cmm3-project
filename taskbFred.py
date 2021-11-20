@@ -35,8 +35,10 @@ def concentration_run(particles, times):
             concentrations = np.append(concentrations, run.concentrations)
     return np.reshape(concentrations, (times.size, particles.size, run.concentrations.size))
 
-def rmse(reference, simulation):
-    rmse_vals = np.sqrt(np.average((reference - simulation) ** 2, axis = 2))
+def rmse(reference, particles, times):
+    bigger_reference = np.full((times.size, particles.size, reference.size), reference)
+    simulation_array = concentration_run(particles, times)
+    rmse_vals = np.sqrt(np.average((bigger_reference - simulation_array) ** 2, axis = 2))
     return rmse_vals
 
 def setup_plot(scale, title, x_label, y_label):
@@ -61,10 +63,8 @@ def reference_data_comparison(x, y_reference, particles, dt):
 reference_data_comparison(np.linspace(-1,1,64), reference_data, particle_array[-5:-1], np.array([0.2]))
 
 def normal_scale_rmse_plot(reference, times, particles):
+    rmse_array = rmse(reference, particles, times)
     # Produces a normalscale plot of E vs Np
-    bigger_reference = np.full((times.size, particles.size, reference.size), reference)
-    simulation_array = concentration_run(particles, times)
-    rmse_array = rmse(bigger_reference, simulation_array)
     plt.figure(figsize=(8, 6))
     for index, dt in enumerate(dts):
         plt.scatter(particles, rmse_array[index], label = 'DT: ' + str(round(dt, 3)))
@@ -73,12 +73,8 @@ def normal_scale_rmse_plot(reference, times, particles):
 normal_scale_rmse_plot(reference_data, dts, particle_array)
 
 def log_scale_rmse_plot(reference, times, particles):
+    rmse_array = rmse(reference, particles, times)
     # Produces a log scale plot of E vs Np with Logarithmic regression lines to find B
-    bigger_reference = np.full((times.size, particles.size, reference.size), reference)
-    simulation_array = concentration_run(particles, times)
-    rmse_array = rmse(bigger_reference, simulation_array)
-    x = particles
-    y = rmse_array
     smoothing = 7  # the larger n is, the smoother curve will be
     b = [1.0 / smoothing] * smoothing
     a = 1
@@ -87,21 +83,17 @@ def log_scale_rmse_plot(reference, times, particles):
     # Plotting the log graph
     plt.figure(figsize=(8, 6))
     for index, dt in enumerate(times):
-        plt.scatter(x, y[index])
+        plt.scatter(particles, rmse_array[index])
     for index, dt in enumerate(times):
-        yy = lfilter(b,a,y[index])
-        popt, pcov = curve_fit(func,  x,  yy, p0=[1, -0.5])
-        plt.plot(x, func(x, *popt), label = 'DT: ' + str(round(dt, 3)) + "s, β:" + str(popt[1]))
+        yy = lfilter(b,a,rmse_array[index])
+        popt, pcov = curve_fit(func,  particles,  yy, p0=[1, -0.5])
+        plt.plot(particles, func(particles, *popt), label = 'DT: ' + str(round(dt, 3)) + "s, β:" + str(popt[1]))
     setup_plot("log", 'RMS Error vs Number of Particles: Log Scale', 'Number of Particles', 'RMS Error')
 
 log_scale_rmse_plot(reference_data, dts, particle_array)
 
 def find_b(reference, times, particles):
-    bigger_reference = np.full((times.size, particles.size, reference.size), reference)
-    simulation_array = concentration_run(particles, times)
-    rmse_array = rmse(bigger_reference, simulation_array)
-    x = particles
-    y = rmse_array
+    rmse_array = rmse(reference, particles, times)
     smoothing = 7  # the larger n is, the smoother curve will be
     b = [1.0 / smoothing] * smoothing
     a = 1
@@ -109,8 +101,8 @@ def find_b(reference, times, particles):
     def func(t, a, b):
         return a*t**b
     for index, dt in enumerate(times):
-        yy = lfilter(b,a,y[index])
-        popt, pcov = curve_fit(func,  x,  yy, p0=[1, -0.5])
+        yy = lfilter(b,a,rmse_array[index])
+        popt, pcov = curve_fit(func,  particles,  yy, p0=[1, -0.5])
         popts = np.append(popts, popt)
     return popts
 
