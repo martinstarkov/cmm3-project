@@ -2,7 +2,7 @@
     "Custom Conditions": {
         "Time (s) (float)": {
             "type": "numeric",
-            "key": "t_max",
+            "key": "time_max",
             "default": 1.0
         },
         "Time Step (s) (float)": {
@@ -51,7 +51,7 @@
         "Add Rectangle (int, floats)": {
             "type": "rectangle",
             "key": ["use_rectangle", "rectangle_value", "rectangle_min", "rectangle_max"],
-            "default": [true, 1, [-1.0, 0.0], [-1.0, 1.0]],
+            "default": [true, 1, [-1.0, -1.0], [0.0, 1.0]],
             "button_image": ["gui/off.png", "gui/on.png"]
         }
     }
