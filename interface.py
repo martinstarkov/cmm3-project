@@ -1,79 +1,33 @@
 import tkinter as tk
 from tkinter import messagebox
 from tkinter.filedialog import askopenfile
-from PIL import Image, ImageTk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from sys import platform as sys_pf
-import matplotlib.pyplot as plt
-from typing import List, Dict, Tuple
+from sys import platform as system_platform
 import numpy as np
 import os
 import json
 import simulation
+import utility
 
-# TODO: Add requirements.txt file.
 # TODO: Add short description at the top of this file.
 
 # Tkinter embedded plot fix for macOS.
-if sys_pf == 'darwin':
+if system_platform == 'darwin':
     import matplotlib
     matplotlib.use("TkAgg")
-    
+
 X = 0
 Y = 1
 
-# Utility functions for easily creating gridded tkinter widgets.
-
-def set_grid_sizes(container, rows: List[int] = [], columns: List[int] = [], uniform_row: str = "", uniform_column: str = ""):
-    for row, size in enumerate(rows):
-        container.grid_rowconfigure(row, weight=size, uniform=uniform_row)
-    for column, size in enumerate(columns):
-        container.grid_columnconfigure(column, weight=size, uniform=uniform_column)
-
-def create_frame(parent_container, row: int, column: int, sticky: str = "NSEW"):
-    frame = tk.Frame(parent_container, bg="white", bd=0)
-    frame.grid(row=row, column=column, sticky=sticky)
-    return frame
-
-def create_label(parent_container, text: str, row: int, column: int, sticky: str = "NSEW", padx: int = 0, pady: int = 0, ipadx: int = 0, ipady: int = 0):
-    label = tk.Label(parent_container, text=text, bg="white")
-    label.grid(row=row, column=column, padx=0, pady=0, ipadx=0, ipady=0, sticky=sticky)
-    return label
-
-def create_entry(parent_container, default_value, row: int, column: int, sticky: str = "NSEW", padx: int = 0, pady: int = 0, ipadx: int = 0, ipady: int = 0, **kwargs):
-    entry = tk.Entry(parent_container, bg="white", justify="center", **kwargs)
-    entry.grid(row=row, column=column, padx=padx, pady=pady, ipadx=ipadx, ipady=ipady, sticky=sticky)
-    entry.insert(0, default_value)
-    return entry
-
-def create_button(parent_container, text: str, row: int, column: int, command, sticky: str = "NSEW", padx: int = 0, pady: int = 0, ipadx: int = 0, ipady: int = 0, **kwargs):
-    button = tk.Button(parent_container, text=text, command=command, **kwargs)
-    button.grid(row=row, column=column, padx=padx, pady=pady, ipadx=ipadx, ipady=ipady, sticky=sticky)
-    return button
-
-def create_image(parent_container, path, row: int, column: int, sticky: str = "NSEW"):
-    tkinter_image = ImageTk.PhotoImage(image=Image.open(path), master=parent_container)
-    image = tk.Label(parent_container, bg="white", image=tkinter_image)
-    image.image = tkinter_image
-    image.grid(row=row, column=column, sticky=sticky)
-    return image
-
-def clear_widgets(container):
-    if container is not None:
-        for widget in container.winfo_children():
-            widget.destroy()
-
-# User interface object to be called at the beginning of the program creation.
+# Parent user interface class which creates a graphical 
+# window and branches the program out to specific tasks.
 class UserInterface(object):
     def __init__(self, json_file_path):
         self.json_file_path = json_file_path
         # Create Tkinter window of given size and grid configuration.
-        self.root = tk.Tk()
-        self.root.geometry("700x700+0+0")
-        self.root.configure(bg="white")
-        set_grid_sizes(self.root, [100], [100], uniform_row="root", uniform_column="root")
-        self.frame = create_frame(self.root, 0, 0)
-        set_grid_sizes(self.frame, [20, 7, 66, 7], [20, 60, 20], uniform_row="frame", uniform_column="frame")
+        self.root = utility.create_root("700x700+0+0")
+        self.frame = utility.create_frame(self.root, 0, 0)
+        utility.set_grid_sizes(self.frame, [20, 7, 66, 7], [20, 60, 20], uniform_row="frame", uniform_column="frame")
         self.container = None
         # Load JSON file into a data object and populate the window.
         with open(self.json_file_path) as json_file:
@@ -84,17 +38,17 @@ class UserInterface(object):
         
     def create_header(self):
         # Create the GUI logo.
-        create_image(self.frame, os.path.join(os.path.dirname(__file__), "gui/logo.png"), 0, 1)
+        utility.create_image(self.frame, os.path.join(os.path.dirname(__file__), "gui/logo.png"), 0, 1)
         # Create the GUI label (modified by main menu buttons when they are pressed).
         self.label_text = "Please choose a mode of operation."
-        self.label = create_label(self.frame, self.label_text, 1, 1)
+        self.label = utility.create_label(self.frame, self.label_text, 1, 1)
     
     # Creates the main menu navigation buttons.
     def create_menu_buttons(self):
-        clear_widgets(self.container)
+        utility.clear_widgets(self.container)
         self.label["text"] = self.label_text
         self.create_container()
-        set_grid_sizes(self.container, [33, 33, 33], [100], uniform_row="container", uniform_column="container")
+        utility.set_grid_sizes(self.container, [33, 33, 33], [100], uniform_row="container", uniform_column="container")
         # Create individual buttons in the container.
         CustomConditions("Custom Conditions", self, 0)
         ValidationTasks("Validation Tasks", self, 1)
@@ -102,16 +56,16 @@ class UserInterface(object):
 
     # Creates the container cell.
     def create_container(self):
-        self.container = create_frame(self.frame, 2, 1)
+        self.container = utility.create_frame(self.frame, 2, 1)
         
     def create_plot(self, figure, reset_function, back_function):
         canvas = FigureCanvasTkAgg(figure, master=self.container)
         canvas.get_tk_widget().grid(row=0, column=0, padx=0, pady=0)
         
-        create_button(self.container, "Reset Plot", 1, 0, reset_function, pady=(5, 0), ipady=15, fg="black", bg="pink")
-        create_button(self.container, "Back", 2, 0, back_function, pady=(5, 0), ipady=15, fg="black", bg="pink")
+        utility.create_button(self.container, "Reset Plot", 1, 0, reset_function, pady=(5, 0), ipady=15, fg="black", bg="pink")
+        utility.create_button(self.container, "Back", 2, 0, back_function, pady=(5, 0), ipady=15, fg="black", bg="pink")
         
-        set_grid_sizes(self.container, [80, 4, 4], [100])
+        utility.set_grid_sizes(self.container, [80, 4, 4], [100])
         return canvas
       
 # Abstract class which represents an input row.
@@ -123,55 +77,55 @@ class InputField(object):
         # Used for storing the entry fields of the given input field.
         self.entries = []
         # Create a sub container for the input field and label.
-        self.sub_container = create_frame(ui.container, row, 0)
-        set_grid_sizes(self.sub_container, columns=[50, 50], uniform_row="sub_container", uniform_column="sub_container")
+        self.sub_container = utility.create_frame(ui.container, row, 0)
+        utility.set_grid_sizes(self.sub_container, columns=[50, 50], uniform_row="sub_container", uniform_column="sub_container")
         
     def create(self, text):
         self.key = text
-        create_label(self.sub_container, text, 0, 0)
+        utility.create_label(self.sub_container, text, 0, 0)
 
 
 class NumericInputField(InputField):
     def create(self, text: str):
         super().create(text)
         # Creates a simple input parameter box with a default value.
-        self.entries = create_entry(self.sub_container, self.field_info["default"], 0, 1, width=20)
+        self.entries = utility.create_entry(self.sub_container, self.field_info["default"], 0, 1, width=20)
 
 
 class DomainInputField(InputField):
     def create(self, text: str):
         super().create(text)
-        domain_container = create_frame(self.sub_container, 0, 1)
+        domain_container = utility.create_frame(self.sub_container, 0, 1)
         
-        create_label(domain_container, "≤ x ≤", 0, 1)
-        create_label(domain_container, "≤ y ≤", 1, 1)
-        self.entries.append([create_entry(domain_container, self.defaults[0][X], 0, 0, sticky="EW", width=5),
-                             create_entry(domain_container, self.defaults[0][Y], 1, 0, sticky="EW", width=5)])
-        self.entries.append([create_entry(domain_container, self.defaults[1][X], 0, 2, sticky="EW", width=5),
-                             create_entry(domain_container, self.defaults[1][Y], 1, 2, sticky="EW", width=5)])
+        utility.create_label(domain_container, "≤ x ≤", 0, 1)
+        utility.create_label(domain_container, "≤ y ≤", 1, 1)
+        self.entries.append([utility.create_entry(domain_container, self.defaults[0][X], 0, 0, sticky="EW", width=5),
+                             utility.create_entry(domain_container, self.defaults[0][Y], 1, 0, sticky="EW", width=5)])
+        self.entries.append([utility.create_entry(domain_container, self.defaults[1][X], 0, 2, sticky="EW", width=5),
+                             utility.create_entry(domain_container, self.defaults[1][Y], 1, 2, sticky="EW", width=5)])
         
-        set_grid_sizes(domain_container, [50, 50], [40, 20, 40])
+        utility.set_grid_sizes(domain_container, [50, 50], [40, 20, 40])
         
 class CellInputField(InputField):
     def create(self, text: str):
         super().create(text)
-        cell_container = create_frame(self.sub_container, 0, 1)
+        cell_container = utility.create_frame(self.sub_container, 0, 1)
         
-        create_label(cell_container, u'Nₓ =', 0, 0)
-        create_label(cell_container, u'Nᵧ =', 1, 0)
-        self.entries.append(create_entry(cell_container, self.defaults[X], 0, 1, sticky="EW", width=5))
-        self.entries.append(create_entry(cell_container, self.defaults[Y], 1, 1, sticky="EW", width=5))
+        utility.create_label(cell_container, u'Nₓ =', 0, 0)
+        utility.create_label(cell_container, u'Nᵧ =', 1, 0)
+        self.entries.append(utility.create_entry(cell_container, self.defaults[X], 0, 1, sticky="EW", width=5))
+        self.entries.append(utility.create_entry(cell_container, self.defaults[Y], 1, 1, sticky="EW", width=5))
         
-        set_grid_sizes(cell_container, [50, 50], [15, 85])
+        utility.set_grid_sizes(cell_container, [50, 50], [15, 85])
 
 class ToggleInputField(InputField):
     def create(self, text: str):
         super().create(text)
-        container = create_frame(self.sub_container, 0, 1)
-        set_grid_sizes(container, [100], [20, 80], uniform_column="toggle_container")
-        self.toggle_container = create_frame(container, 0, 0)
-        set_grid_sizes(self.toggle_container, [100], [100])
-        self.input_container = create_frame(container, 0, 1)
+        container = utility.create_frame(self.sub_container, 0, 1)
+        utility.set_grid_sizes(container, [100], [20, 80], uniform_column="toggle_container")
+        self.toggle_container = utility.create_frame(container, 0, 0)
+        utility.set_grid_sizes(self.toggle_container, [100], [100])
+        self.input_container = utility.create_frame(container, 0, 1)
         self.state = tk.BooleanVar(value=self.defaults[0])
         toggle_button = tk.Checkbutton(self.toggle_container, bg="white", activebackground="white", \
                                        variable=self.state, onvalue=True, offvalue=False, command=self.update)
@@ -195,20 +149,20 @@ class ToggleInputField(InputField):
         
     # Removes all the non toggle button widgets.
     def disappear(self):
-        clear_widgets(self.input_container)
+        utility.clear_widgets(self.input_container)
         self.entries = [self.state.get()]
 
 class VelocityInputField(ToggleInputField):
     def appear(self):
-        set_grid_sizes(self.input_container, columns=[100])
-        file_container = create_frame(self.input_container, 0, 0)
+        utility.set_grid_sizes(self.input_container, columns=[100])
+        file_container = utility.create_frame(self.input_container, 0, 0)
         
-        create_button(file_container, "Open File", 0, 0, self.open_file)
+        utility.create_button(file_container, "Open File", 0, 0, self.open_file)
 
-        self.path_label = create_label(file_container, "File: " + self.defaults[1], 1, 0)
+        self.path_label = utility.create_label(file_container, "File: " + self.defaults[1], 1, 0)
         self.entries.append(os.path.join(os.path.dirname(__file__), self.defaults[1]))
         
-        set_grid_sizes(file_container, [50, 50], [100])
+        utility.set_grid_sizes(file_container, [50, 50], [100])
         
     def open_file(self):
         file = askopenfile(mode='r', filetypes=[('Velocity Field Data Files', '*.dat')])
@@ -219,53 +173,53 @@ class VelocityInputField(ToggleInputField):
     
 class CircleInputField(ToggleInputField):
     def appear(self):
-        set_grid_sizes(self.input_container, columns=[50, 50])
-        concentration_container = create_frame(self.input_container, 0, 0)
-        circle_container = create_frame(self.input_container, 0, 1)
+        utility.set_grid_sizes(self.input_container, columns=[50, 50])
+        concentration_container = utility.create_frame(self.input_container, 0, 0)
+        circle_container = utility.create_frame(self.input_container, 0, 1)
         
-        create_label(concentration_container, "φ =", 1, 0)
-        create_label(concentration_container, "", 0, 0)
-        create_label(circle_container, "x", 0, 0)
-        create_label(circle_container, "y", 0, 1)
-        create_label(circle_container, "radius", 0, 2)
+        utility.create_label(concentration_container, "φ =", 1, 0)
+        utility.create_label(concentration_container, "", 0, 0)
+        utility.create_label(circle_container, "x", 0, 0)
+        utility.create_label(circle_container, "y", 0, 1)
+        utility.create_label(circle_container, "radius", 0, 2)
         
-        self.entries.append(create_entry(concentration_container, self.defaults[1], 1, 1, sticky="EW", padx=(0, 5), width=5))
-        self.entries.append([create_entry(circle_container, self.defaults[2][X], 1, 0, sticky="EW", width=5),
-                             create_entry(circle_container, self.defaults[2][Y], 1, 1, sticky="EW", width=5)])
-        self.entries.append(create_entry(circle_container, self.defaults[3], 1, 2, sticky="EW", width=5))
+        self.entries.append(utility.create_entry(concentration_container, self.defaults[1], 1, 1, sticky="EW", padx=(0, 5), width=5))
+        self.entries.append([utility.create_entry(circle_container, self.defaults[2][X], 1, 0, sticky="EW", width=5),
+                             utility.create_entry(circle_container, self.defaults[2][Y], 1, 1, sticky="EW", width=5)])
+        self.entries.append(utility.create_entry(circle_container, self.defaults[3], 1, 2, sticky="EW", width=5))
         
-        set_grid_sizes(concentration_container, [50, 50], [40, 60])
-        set_grid_sizes(circle_container, [50, 50], [33, 33, 33])
+        utility.set_grid_sizes(concentration_container, [50, 50], [40, 60])
+        utility.set_grid_sizes(circle_container, [50, 50], [33, 33, 33])
 
 class RectangleInputField(ToggleInputField):
     def appear(self):
-        set_grid_sizes(self.input_container, columns=[50, 50])
-        concentration_container = create_frame(self.input_container, 0, 0)
-        extents_container = create_frame(self.input_container, 0, 1)
+        utility.set_grid_sizes(self.input_container, columns=[50, 50])
+        concentration_container = utility.create_frame(self.input_container, 0, 0)
+        extents_container = utility.create_frame(self.input_container, 0, 1)
         
-        create_label(concentration_container, "φ =", 0, 0)
-        create_label(extents_container, "≤ x ≤", 0, 1)
-        create_label(extents_container, "≤ y ≤", 1, 1)
+        utility.create_label(concentration_container, "φ =", 0, 0)
+        utility.create_label(extents_container, "≤ x ≤", 0, 1)
+        utility.create_label(extents_container, "≤ y ≤", 1, 1)
         
-        self.entries.append(create_entry(concentration_container, self.defaults[1], 0, 1, sticky="EW", padx=(0, 5), width=5))
-        self.entries.append([create_entry(extents_container, self.defaults[2][X], 0, 0, sticky="EW", width=5),
-                             create_entry(extents_container, self.defaults[2][Y], 1, 0, sticky="EW", width=5)])
-        self.entries.append([create_entry(extents_container, self.defaults[3][X], 0, 2, sticky="EW", width=5),
-                             create_entry(extents_container, self.defaults[3][Y], 1, 2, sticky="EW", width=5)])
+        self.entries.append(utility.create_entry(concentration_container, self.defaults[1], 0, 1, sticky="EW", padx=(0, 5), width=5))
+        self.entries.append([utility.create_entry(extents_container, self.defaults[2][X], 0, 0, sticky="EW", width=5),
+                             utility.create_entry(extents_container, self.defaults[2][Y], 1, 0, sticky="EW", width=5)])
+        self.entries.append([utility.create_entry(extents_container, self.defaults[3][X], 0, 2, sticky="EW", width=5),
+                             utility.create_entry(extents_container, self.defaults[3][Y], 1, 2, sticky="EW", width=5)])
         
-        set_grid_sizes(concentration_container, [100], [40, 60])
-        set_grid_sizes(extents_container, [50, 50], [33, 33, 33])
+        utility.set_grid_sizes(concentration_container, [100], [40, 60])
+        utility.set_grid_sizes(extents_container, [50, 50], [33, 33, 33])
            
 # Abstract class which represents main menu buttons.
 class MainMenuButton(object):
     def __init__(self, name: str, ui: UserInterface, row: int):
         self.name = name
         self.ui = ui
-        self.button = create_button(self.ui.container, name, row, 0, self.press, sticky="EW", pady=10, ipady=40, fg="black", bg="pink")
+        self.button = utility.create_button(self.ui.container, name, row, 0, self.press, sticky="EW", pady=10, ipady=40, fg="black", bg="pink")
     def press(self):
         # Whenever a main menu button is pressed, the container is cleared and
         # the label below the logo is set to the name of the main menu button.
-        clear_widgets(self.ui.container)
+        utility.clear_widgets(self.ui.container)
         self.ui.label["text"] = self.name
 
 type_dictionary = {
@@ -288,13 +242,13 @@ class CustomConditions(MainMenuButton):
         # Count the number of input fields and add 2 rows for the run and back buttons.
         row_count = len(input_dictionary.keys()) + 2
         relative_height = int(100 / row_count)
-        set_grid_sizes(self.ui.container, rows=np.full(row_count, relative_height))
+        utility.set_grid_sizes(self.ui.container, rows=np.full(row_count, relative_height))
         
         for row, (key, field_info) in enumerate(input_dictionary.items()):
             self.create_input_object(key, field_info, row)
         
-        create_button(self.ui.container, "Run Simulation", row_count - 1, 0, self.run, pady=(5, 0), ipady=10, fg="black", bg="pink")
-        create_button(self.ui.container, "Back", row_count, 0, self.ui.create_menu_buttons, pady=(5, 0), ipady=10, fg="black", bg="pink")
+        utility.create_button(self.ui.container, "Run Simulation", row_count - 1, 0, self.run, pady=(5, 0), ipady=10, fg="black", bg="pink")
+        utility.create_button(self.ui.container, "Back", row_count, 0, self.ui.create_menu_buttons, pady=(5, 0), ipady=10, fg="black", bg="pink")
         
     def create_input_object(self, text: str, field_info, row: int):
         input = type_dictionary[field_info["type"]](self.ui, field_info, row)
@@ -346,7 +300,7 @@ class CustomConditions(MainMenuButton):
             self.setup()
         
     def setup(self):
-        clear_widgets(self.ui.container)
+        utility.clear_widgets(self.ui.container)
         self.ui.label["text"] = self.name
         
         # Color gradient which goes red to blue (0.0 to 1.0).
