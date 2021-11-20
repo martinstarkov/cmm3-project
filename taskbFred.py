@@ -15,13 +15,13 @@ reference_func = interp1d(reference_coordinates, reference_concentration, "linea
 reference_data = reference_func(np.linspace(-1,1,64))
 
 # Array of values of different numbers of particles, lower values are repeated more often for accuracy
-particle_divisions = 60
+particle_divisions = 100
 particle_array = np.logspace(2, 4, particle_divisions, dtype=int)
 # np.linspace(1000, 30000, num = particle_divisions, dtype=int)
 # np.logspace(2, 4, particle_divisions, dtype=int)
 
-num_dts = 10
-dts = np.linspace(0.001, 0.1, num = num_dts)
+num_dts = 4
+dts = np.linspace(0.001, 0.2, num = num_dts)
 
 reference_array = np.full((particle_array.size, reference_data.size), reference_data)
 bigger_reference = np.full((num_dts, particle_array.size, reference_data.size), reference_data)
@@ -83,7 +83,7 @@ plt.show()
 
 plt.figure(figsize=(8, 6))
 for index, dt in enumerate(dts):
-    plt.scatter(particle_array, rmse_array[index], label = 'DT: ' + str(round(dt, 2)))
+    plt.scatter(particle_array, rmse_array[index], label = 'DT: ' + str(round(dt, 3)))
 # pl.plot(x_tester, y, 'r--', label = 'Trendline')
 plt.legend()
 plt.title('RMS Error vs Number of Particles')
@@ -95,8 +95,8 @@ plt.show()
 ################################################################################################################################
 x = particle_array
 y = rmse_array
-n = 5  # the larger n is, the smoother curve will be
-b = [1.0 / n] * n
+smoothing = 7  # the larger n is, the smoother curve will be
+b = [1.0 / smoothing] * smoothing
 a = 1
 
 def func(t, a, b):
@@ -106,12 +106,11 @@ def func(t, a, b):
 # m, b = np.polyfit(x, y, 1)
 plt.figure(figsize=(8, 6))
 for index, dt in enumerate(dts):
-    plt.scatter(x, y[index], label = 'DT: ' + str(round(dt, 2)))
-for dt in range(num_dts):
-    yy = lfilter(b,a,y[dt])
-    popt, pcov = curve_fit(func,  x,  yy, p0=[5, -0.5])
-    print(popt)
-    plt.plot(x, func(x, *popt))
+    plt.scatter(x, y[index])
+for index, dt in enumerate(dts):
+    yy = lfilter(b,a,y[index])
+    popt, pcov = curve_fit(func,  x,  yy, p0=[1, -0.5])
+    plt.plot(x, func(x, *popt), label = 'DT: ' + str(round(dt, 3)) + "s, β:" + str(popt[1]))
 plt.legend()
 plt.yscale('log')
 plt.xscale('log')
