@@ -7,6 +7,7 @@ import pylab as pl
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 from scipy.optimize import curve_fit
+from scipy.signal import lfilter
 
 # Read reference solution from file.
 reference_coordinates, reference_concentration = simulation.read_data_file("reference_solution_1D.dat", [0], [1])
@@ -14,7 +15,7 @@ reference_func = interp1d(reference_coordinates, reference_concentration, "linea
 reference_data = reference_func(np.linspace(-1,1,64))
 
 # Array of values of different numbers of particles, lower values are repeated more often for accuracy
-particle_divisions = 50
+particle_divisions = 60
 particle_array = np.logspace(2, 4, particle_divisions, dtype=int)
 # np.linspace(1000, 30000, num = particle_divisions, dtype=int)
 # np.logspace(2, 4, particle_divisions, dtype=int)
@@ -93,18 +94,23 @@ plt.show()
 
 ################################################################################################################################
 x = particle_array
-y = np.reshape(rmse_array, (particle_divisions, num_dts))
+y = rmse_array
+n = 5  # the larger n is, the smoother curve will be
+b = [1.0 / n] * n
+a = 1
 
 def func(t, a, b):
     return a*t**b
 
 # Plotting the log graph
-# m, b = np.polyfit(x, y, 1, w=np.sqrt(y[0][0]))[15:]
+# m, b = np.polyfit(x, y, 1)
 plt.figure(figsize=(8, 6))
 for index, dt in enumerate(dts):
-    plt.scatter(x, rmse_array[index], label = 'DT: ' + str(round(dt, 2)))
+    plt.scatter(x, y[index], label = 'DT: ' + str(round(dt, 2)))
 for dt in range(num_dts):
-    popt, pcov = curve_fit(func,  x,  y[:,dt], p0=(4, 0.1))
+    yy = lfilter(b,a,y[dt])
+    popt, pcov = curve_fit(func,  x,  yy, p0=[5, -0.5])
+    print(popt)
     plt.plot(x, func(x, *popt))
 plt.legend()
 plt.yscale('log')
