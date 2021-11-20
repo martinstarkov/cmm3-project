@@ -95,13 +95,13 @@ log_scale_rmse_plot(reference_data, dts, particle_array)
 def find_b(reference, times, particles):
     rmse_array = rmse(reference, particles, times)
     smoothing = 7  # the larger n is, the smoother curve will be
-    b = [1.0 / smoothing] * smoothing
-    a = 1
+    c = [1.0 / smoothing] * smoothing
+    d = 1
     popts = np.array([])
     def func(t, a, b):
         return a*t**b
     for index, dt in enumerate(times):
-        yy = lfilter(b,a,rmse_array[index])
+        yy = lfilter(c,d,rmse_array[index])
         popt, pcov = curve_fit(func,  particles,  yy, p0=[1, -0.5])
         popts = np.append(popts, popt)
     return popts
