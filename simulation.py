@@ -35,10 +35,10 @@ class Simulation(object):
         self.diffusivity = diffusivity
         self.use_velocity = use_velocity
     
-        # Read vector field data from file.
         self.cmap = matplotlib.colors.LinearSegmentedColormap("", color_gradient, 256)
         
         if self.use_velocity:
+            # Read vector field data from file.
             self.velocity_coordinates, self.velocity_vectors = read_data_file(velocity_field_path, [0, 1], [2, 3])
             self.spatial_velocity = cKDTree(self.velocity_coordinates)
         
@@ -55,9 +55,7 @@ class Simulation(object):
         self.particles = np.zeros(self.particle_count, dtype=int)
         
     def __lagrangian(self, velocities: npt.ArrayLike):
-        # TODO: Check  that this formula matches the one in the slides.
-        self.coordinates += velocities * self.dt + \
-                            math.sqrt(2 * self.diffusivity * self.dt) * \
+        self.coordinates += velocities * self.dt + math.sqrt(2 * self.diffusivity * self.dt) * \
                             np.random.normal(size=self.coordinates.shape)
 
     def __boundary_conditions(self):
