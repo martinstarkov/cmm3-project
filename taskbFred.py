@@ -9,117 +9,110 @@ from scipy.interpolate import interp1d
 from scipy.optimize import curve_fit
 from scipy.signal import lfilter
 
+# Array of values of different numbers of particles, lower values are repeated more often for accuracy
+particle_divisions = 100
+particle_array = np.logspace(2, 4, particle_divisions, dtype=int)
+
+# Number of DTs
+num_dts = 5
+min_dt = 0.001
+max_dt = 0.5
+dts = np.linspace(min_dt, max_dt, num = num_dts)
+
 # Read reference solution from file.
 reference_coordinates, reference_concentration = simulation.read_data_file("reference_solution_1D.dat", [0], [1])
 reference_func = interp1d(reference_coordinates, reference_concentration, "linear", fill_value="extrapolate")
 reference_data = reference_func(np.linspace(-1,1,64))
 
-# Array of values of different numbers of particles, lower values are repeated more often for accuracy
-particle_divisions = 100
-particle_array = np.logspace(2, 4, particle_divisions, dtype=int)
-# np.linspace(1000, 30000, num = particle_divisions, dtype=int)
-# np.logspace(2, 4, particle_divisions, dtype=int)
-
-num_dts = 4
-dts = np.linspace(0.001, 0.2, num = num_dts)
-
-reference_array = np.full((particle_array.size, reference_data.size), reference_data)
-bigger_reference = np.full((num_dts, particle_array.size, reference_data.size), reference_data)
-
-def concentration_run(particle_array, dts):
+def concentration_run(particles, times):
     concentrations = np.array([])
-    for index, dt in enumerate(dts):
-        for nP in particle_array:
+    for index, dt in enumerate(times):
+        for nP in particles:
             run = simulation.Simulation(dt, 0.2, -1, 1, -1, 1, nP, 64, 1, 0.1)
             run.add_rectangle([-1, -1], [1, 2], 1)
             run.simulate()
             run.calculate_concentrations()
             concentrations = np.append(concentrations, run.concentrations)
-    return np.reshape(concentrations, (dts.size, particle_array.size, run.concentrations.size))
-
-simulation_concentrations = concentration_run(particle_array, dts)
+    return np.reshape(concentrations, (times.size, particles.size, run.concentrations.size))
 
 def rmse(reference, simulation):
     rmse_vals = np.sqrt(np.average((reference - simulation) ** 2, axis = 2))
     return rmse_vals
 
-rmse_array = rmse(bigger_reference, simulation_concentrations)
-##############################################################################################################################
+def setup_plot(scale, title, x_label, y_label):
+    plt.legend()
+    plt.yscale(scale)
+    plt.xscale(scale)
+    plt.title(title)
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+    plt.grid()
+    plt.show()
 
-# Fitting the graph
+def reference_data_comparison(x, y_reference, particles, dt):
+    # Produces a ϕ vs x plot to compare reference data to the simulation data
+    y_simulation_array = np.reshape(concentration_run(particles, dt), (particles.size, x.size))
+    plt.figure(figsize=(8, 6))
+    plt.plot(x, y_reference, label = 'Reference')
+    for index, s in enumerate(y_simulation_array):
+        plt.plot(x, s, label = 'Number of Particles: ' + str(particles[index]))
+    setup_plot("linear", 'Concentrationϕ vs x', 'Concentration ϕ', 'x')
 
-# def func(w, a, b):
-#     return a*(w)**(b)
+reference_data_comparison(np.linspace(-1,1,64), reference_data, particle_array[-5:-1], np.array([0.2]))
 
-# pars, cov = curve_fit(func, particle_array, rmse_array)
+def normal_scale_rmse_plot(reference, times, particles):
+    # Produces a normalscale plot of E vs Np
+    bigger_reference = np.full((times.size, particles.size, reference.size), reference)
+    simulation_array = concentration_run(particles, times)
+    rmse_array = rmse(bigger_reference, simulation_array)
+    plt.figure(figsize=(8, 6))
+    for index, dt in enumerate(dts):
+        plt.scatter(particles, rmse_array[index], label = 'DT: ' + str(round(dt, 3)))
+    setup_plot("linear", 'RMS Error vs Number of Particles', 'Number of Particles', 'RMS Error')
 
-# a = round(pars[0], 2)
-# b = round(pars[1], 2)  # beta
+normal_scale_rmse_plot(reference_data, dts, particle_array)
 
+def log_scale_rmse_plot(reference, times, particles):
+    # Produces a log scale plot of E vs Np with Logarithmic regression lines to find B
+    bigger_reference = np.full((times.size, particles.size, reference.size), reference)
+    simulation_array = concentration_run(particles, times)
+    rmse_array = rmse(bigger_reference, simulation_array)
+    x = particles
+    y = rmse_array
+    smoothing = 7  # the larger n is, the smoother curve will be
+    b = [1.0 / smoothing] * smoothing
+    a = 1
+    def func(t, a, b):
+        return a*t**b
+    # Plotting the log graph
+    plt.figure(figsize=(8, 6))
+    for index, dt in enumerate(times):
+        plt.scatter(x, y[index])
+    for index, dt in enumerate(times):
+        yy = lfilter(b,a,y[index])
+        popt, pcov = curve_fit(func,  x,  yy, p0=[1, -0.5])
+        plt.plot(x, func(x, *popt), label = 'DT: ' + str(round(dt, 3)) + "s, β:" + str(popt[1]))
+    setup_plot("log", 'RMS Error vs Number of Particles: Log Scale', 'Number of Particles', 'RMS Error')
 
-# # Printing the fitting equation 
+log_scale_rmse_plot(reference_data, dts, particle_array)
 
-# E, Np = symbols('E Np')
+def find_b(reference, times, particles):
+    bigger_reference = np.full((times.size, particles.size, reference.size), reference)
+    simulation_array = concentration_run(particles, times)
+    rmse_array = rmse(bigger_reference, simulation_array)
+    x = particles
+    y = rmse_array
+    smoothing = 7  # the larger n is, the smoother curve will be
+    b = [1.0 / smoothing] * smoothing
+    a = 1
+    popts = np.array([])
+    def func(t, a, b):
+        return a*t**b
+    for index, dt in enumerate(times):
+        yy = lfilter(b,a,y[index])
+        popt, pcov = curve_fit(func,  x,  yy, p0=[1, -0.5])
+        popts = np.append(popts, popt)
+    return popts
 
-# answr = a*(Np)**b
-last_five = simulation_concentrations[0, -5:-1, :]
-
-plt.figure(figsize=(8, 6))
-plt.plot(np.linspace(-1,1,64), reference_data, label = 'Reference')
-for index, s in enumerate(last_five):
-    plt.plot(np.linspace(-1,1,64), s, label = 'Number of Particles: ' + str(particle_array[index-4]))
-plt.legend()
-plt.title('ϕ vs x')
-plt.ylabel('ϕ')
-plt.xlabel('x')
-plt.grid()
-plt.show()
-############################################################################################################################
-
-# Plotting the graph normally
-
-# x_tester = np.linspace(5000, 1000000, 100)
-# y = a*(x_tester)**b
-
-plt.figure(figsize=(8, 6))
-for index, dt in enumerate(dts):
-    plt.scatter(particle_array, rmse_array[index], label = 'DT: ' + str(round(dt, 3)))
-# pl.plot(x_tester, y, 'r--', label = 'Trendline')
-plt.legend()
-plt.title('RMS Error vs Number of Particles')
-plt.xlabel('Number of Particles')
-plt.ylabel('RMS Error')
-plt.grid()
-plt.show()
-
-################################################################################################################################
-x = particle_array
-y = rmse_array
-smoothing = 7  # the larger n is, the smoother curve will be
-b = [1.0 / smoothing] * smoothing
-a = 1
-
-def func(t, a, b):
-    return a*t**b
-
-# Plotting the log graph
-# m, b = np.polyfit(x, y, 1)
-plt.figure(figsize=(8, 6))
-for index, dt in enumerate(dts):
-    plt.scatter(x, y[index])
-for index, dt in enumerate(dts):
-    yy = lfilter(b,a,y[index])
-    popt, pcov = curve_fit(func,  x,  yy, p0=[1, -0.5])
-    plt.plot(x, func(x, *popt), label = 'DT: ' + str(round(dt, 3)) + "s, β:" + str(popt[1]))
-plt.legend()
-plt.yscale('log')
-plt.xscale('log')
-plt.title('E vs Np (log scale)')
-plt.xlabel('Np')
-plt.ylabel('E')
-plt.grid()
-plt.show()
-
-
-#################################################################################################################################
-# Showing final fitting equation
+results = find_b(reference_data, dts, particle_array)
+print(results)
