@@ -1,9 +1,6 @@
-import matplotlib.colors
 import numpy as np
 import simulation
 from scipy.optimize import curve_fit
-from sympy import symbols
-import pylab as pl
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 from scipy.optimize import curve_fit
@@ -25,6 +22,7 @@ reference_func = interp1d(reference_coordinates, reference_concentration, "linea
 reference_data = reference_func(np.linspace(-1,1,64))
 
 def concentration_run(particles, times):
+    # Accesses simulation class and returns the concentration data at different dts
     concentrations = np.array([])
     for index, dt in enumerate(times):
         for nP in particles:
@@ -36,12 +34,14 @@ def concentration_run(particles, times):
     return np.reshape(concentrations, (times.size, particles.size, run.concentrations.size))
 
 def rmse(reference, particles, times):
+    # Caldulates the RMSE between the Reference Data and the simulation data, at multiple dts
     bigger_reference = np.full((times.size, particles.size, reference.size), reference)
     simulation_array = concentration_run(particles, times)
     rmse_vals = np.sqrt(np.average((bigger_reference - simulation_array) ** 2, axis = 2))
     return rmse_vals
 
 def setup_plot(scale, title, x_label, y_label):
+    # Sets up plot, reduces the amount of repeating code in further functions.
     plt.legend()
     plt.yscale(scale)
     plt.xscale(scale)
@@ -63,8 +63,8 @@ def reference_data_comparison(x, y_reference, particles, dt):
 reference_data_comparison(np.linspace(-1,1,64), reference_data, particle_array[-5:-1], np.array([0.2]))
 
 def normal_scale_rmse_plot(reference, times, particles):
-    rmse_array = rmse(reference, particles, times)
     # Produces a normalscale plot of E vs Np
+    rmse_array = rmse(reference, particles, times)
     plt.figure(figsize=(8, 6))
     for index, dt in enumerate(dts):
         plt.scatter(particles, rmse_array[index], label = 'DT: ' + str(round(dt, 3)))
@@ -73,8 +73,8 @@ def normal_scale_rmse_plot(reference, times, particles):
 normal_scale_rmse_plot(reference_data, dts, particle_array)
 
 def log_scale_rmse_plot(reference, times, particles):
-    rmse_array = rmse(reference, particles, times)
     # Produces a log scale plot of E vs Np with Logarithmic regression lines to find B
+    rmse_array = rmse(reference, particles, times)
     smoothing = 7  # the larger n is, the smoother curve will be
     b = [1.0 / smoothing] * smoothing
     a = 1
@@ -93,6 +93,7 @@ def log_scale_rmse_plot(reference, times, particles):
 log_scale_rmse_plot(reference_data, dts, particle_array)
 
 def find_b(reference, times, particles):
+    # Finds the constant B from the RMSE Data
     rmse_array = rmse(reference, particles, times)
     smoothing = 7  # the larger n is, the smoother curve will be
     c = [1.0 / smoothing] * smoothing
