@@ -3,7 +3,6 @@ import simulation
 from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
-from scipy.optimize import curve_fit
 from scipy.signal import lfilter
 
 # Array of values of different numbers of particles, lower values are repeated more often for accuracy
