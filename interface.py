@@ -1,15 +1,20 @@
 import tkinter as tk
 from tkinter import messagebox
 from tkinter.filedialog import askopenfile
+from matplotlib import animation
+import matplotlib.colors
+import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from sys import platform as system_platform
 import numpy as np
 import os
 import json
+import time
 import simulation
 import utility
 
 # TODO: Add short description at the top of this file.
+# TODO: Fix task D.
 
 # Tkinter embedded plot fix for macOS.
 if system_platform == 'darwin':
@@ -27,7 +32,7 @@ class UserInterface(object):
         # Create Tkinter window of given size and grid configuration.
         self.root = utility.create_root("700x700+0+0")
         self.frame = utility.create_frame(self.root, 0, 0)
-        utility.set_grid_sizes(self.frame, [20, 7, 66, 7], [20, 60, 20], uniform_row="frame", uniform_column="frame")
+        utility.set_grid_sizes(self.frame, [20, 7, 66, 7], [10, 80, 10], uniform_row="frame", uniform_column="frame")
         self.container = None
         # Load JSON file into a data object and populate the window.
         with open(self.json_file_path) as json_file:
@@ -35,6 +40,8 @@ class UserInterface(object):
             self.create_header()
             self.create_menu_buttons()
             self.root.mainloop()
+            self.root.quit()
+            self.root.destroy()
         
     def create_header(self):
         # Create the GUI logo.
@@ -58,9 +65,9 @@ class UserInterface(object):
     def create_container(self):
         self.container = utility.create_frame(self.frame, 2, 1)
         
-    def create_plot(self, figure, reset_function, back_function):
+    def embed_plot(self, figure, reset_function, back_function):
         canvas = FigureCanvasTkAgg(figure, master=self.container)
-        canvas.get_tk_widget().grid(row=0, column=0, padx=0, pady=0)
+        canvas.get_tk_widget().grid(row=0, column=0)
         
         utility.create_button(self.container, "Reset Plot", 1, 0, reset_function, pady=(5, 0), ipady=15, fg="black", bg="pink")
         utility.create_button(self.container, "Back", 2, 0, back_function, pady=(5, 0), ipady=15, fg="black", bg="pink")
@@ -295,65 +302,77 @@ class CustomConditions(MainMenuButton):
                     self.outputs[keys[index]] = self.parse_entry(defaults[index], self.get_entry(entry))
             else:
                 self.outputs[keys] = self.parse_entry(defaults, self.get_entry(input.entries))
-        # Any value of None (invalid) in the self.outputs dictionary will prevent the button from continuing.
-        if not None in self.outputs.values() and self.validation():
+        # Any value of None (invalid) in the outputs dictionary will prevent the button from continuing.
+        if not None in self.outputs.values() and self.validation(self.outputs):
             self.setup()
-        
-    def setup(self):
-        utility.clear_widgets(self.ui.container)
-        self.ui.label["text"] = self.name
-        
-        # Color gradient which goes red to blue (0.0 to 1.0).
-        color_gradient = dict(red   = [(0.0, 0.0, 1.0), (1.0, 0.0, 0.0)],
-                              green = [(0.0, 0.0, 0.0), (1.0, 0.0, 0.0)],
-                              blue  = [(0.0, 0.0, 0.0), (1.0, 1.0, 0.0)])
-
-        sim = simulation.Simulation(color_gradient, **self.outputs)
-        
-        if self.outputs.get("use_circle"):
-            sim.add_circle(self.outputs["circle_center"], self.outputs["circle_radius"], self.outputs["circle_value"])
-        
-        if self.outputs.get("use_rectangle"):
-            sim.add_rectangle(self.outputs["rectangle_min"], self.outputs["rectangle_max"], self.outputs["rectangle_value"])
-
-        if self.outputs["animated"]:
-            sim.setup_animated_plot()
-            self.ui.label["text"] = self.name + " (animating until t = " +  str(self.outputs["time_max"]) + "s)"
-        else:
-            sim.setup_static_plot()
             
-        self.ui.create_plot(sim.figure, self.setup, self.press).draw()
-    
     # Returns true if condition is met, otherwise prompts user with an error message and returns false.
     def check(self, condition: bool, message: str):
         return True if condition else not bool(messagebox.showinfo("Field error", message))
         
     # Validates entry field inputs and notifies the user if any or all of them do not fit requiremed criteria.
     # Criteria such as certain values being positive, velocity data being readable, etc. 
-    def validation(self):
+    def validation(self, outputs):
         # All conditions must be met in order for validity to hold.
-        valid = self.check(self.outputs["time_max"] > 0, "Max time must be greater than 0") & \
-                self.check(self.outputs["dt"] > 0, "Time step must be greater than 0") & \
-                self.check(self.outputs["dt"] < self.outputs["time_max"], "Time step cannot exceed maximum time") & \
-                self.check(self.outputs["diffusivity"] > 0, "Diffusivity must be greater than or equal to 0") & \
-                self.check(self.outputs["particle_count"] > 0, "Particle count must be greater than 0") & \
-                self.check(self.outputs["max"][X] > self.outputs["min"][X], "X_max must be greater than X_min") & \
-                self.check(self.outputs["max"][Y] > self.outputs["min"][Y], "Y_max must be greater than Y_min") & \
-                self.check(self.outputs["cell_size"][X] > 0, "Cell width must be greater than 0") & \
-                self.check(self.outputs["cell_size"][Y] > 0, "Cell height must be greater than 0")
+        valid = self.check(outputs["time_max"] > 0, "Max time must be greater than 0") & \
+                self.check(outputs["dt"] > 0, "Time step must be greater than 0") & \
+                self.check(outputs["dt"] < outputs["time_max"], "Time step cannot exceed maximum time") & \
+                self.check(outputs["diffusivity"] > 0, "Diffusivity must be greater than or equal to 0") & \
+                self.check(outputs["particle_count"] > 0, "Particle count must be greater than 0") & \
+                self.check(outputs["max"][X] > outputs["min"][X], "X_max must be greater than X_min") & \
+                self.check(outputs["max"][Y] > outputs["min"][Y], "Y_max must be greater than Y_min") & \
+                self.check(outputs["cell_size"][X] > 0, "Cell width must be greater than 0") & \
+                self.check(outputs["cell_size"][Y] > 0, "Cell height must be greater than 0")
         
-        if self.outputs["use_velocity"]:
+        if outputs["use_velocity"]:
             # Check that the velocity field file can be read and has 4 columns.
-            coordinates, vectors = simulation.read_data_file(self.outputs["velocity_field_path"], [0, 1], [2, 3])
+            coordinates, vectors = simulation.read_data_file(outputs["velocity_field_path"], [0, 1], [2, 3])
             valid &= self.check(coordinates is not None and vectors is not None, "Velocity field data file does not contain the required data columns") 
         
-        if self.outputs["use_circle"]:
-            valid &= self.check(self.outputs["circle_value"] == 0 or self.outputs["circle_value"] == 1, "Circle concentration must start as 0 or 1 (red or blue)")
+        if outputs["use_circle"]:
+            valid &= self.check(outputs["circle_value"] == 0 or outputs["circle_value"] == 1, "Circle concentration must start as 0 or 1 (red or blue)")
         
-        if self.outputs["use_rectangle"]:
-            valid &= self.check(self.outputs["rectangle_value"] == 0 or self.outputs["rectangle_value"] == 1, "Rectangle concentration must start as 0 or 1 (red or blue)")
+        if outputs["use_rectangle"]:
+            valid &= self.check(outputs["rectangle_value"] == 0 or outputs["rectangle_value"] == 1, "Rectangle concentration must start as 0 or 1 (red or blue)")
         
         return valid
+
+    def setup(self):
+        utility.clear_widgets(self.ui.container)
+        
+        sim = simulation.Simulation(**self.outputs)
+        if not sim.animated:
+            sim.simulate(print_time=True)
+            
+        plt.close('all')
+        figure, self.axes = plt.figure(), plt.axes()
+        self.axes.set_xlabel("x")
+        self.axes.set_ylabel("y")
+        sim.calculate_concentrations()
+        self.heatmap = self.axes.imshow(sim.concentrations, animated=sim.animated, \
+                              extent=(sim.min[X], sim.max[X], sim.min[Y], sim.max[Y]))
+        # Color gradient which goes red to blue (0.0 to 1.0).
+        cmap = matplotlib.colors.LinearSegmentedColormap.from_list("", [(0, 'r'), (1, 'b')])
+        self.heatmap.set_cmap(cmap)
+        figure.colorbar(matplotlib.cm.ScalarMappable(cmap=cmap))
+        
+        if sim.animated:
+            self.ui.label["text"] = self.name + " (animating until t = " +  str(sim.time_max) + "s)"
+            self.anim = animation.FuncAnimation(figure, func=self.animate_plot, 
+                                                fargs=(sim,), frames=sim.steps, \
+                                                interval=1, repeat=False)
+        else:
+            self.ui.label["text"] = self.name
+            self.axes.set_title("Time: " + str(round((sim.steps - 1) * sim.dt, 3)))
+
+        self.ui.embed_plot(figure, self.setup, self.press).draw()
+     
+    def animate_plot(self, step: int, sim: simulation.Simulation):
+        self.axes.set_title("Time: " + str(round(step * sim.dt, 3)))
+        sim.calculate_concentrations()
+        self.heatmap.set_array(sim.concentrations)
+        if step > 0:
+            sim.update()
 
 # TODO: Make this work.
 class ValidationTasks(MainMenuButton):
@@ -365,31 +384,52 @@ class EngineeringSpill(MainMenuButton):
         super().press()
         
         outputs = {
-            "time_max": 5,
+            "time_max": 100,
             "dt": 0.01,
             "diffusivity": 0.1,
-            "particle_count": 15000,
+            "particle_count": 80000,
             "min": [-1.0, -1.0],
             "max": [1.0, 1.0],
-            "cell_size": [75, 75],
+            "cell_size": [100, 100],
             "use_velocity": True,
+            "use_circle": True,
+            "use_rectangle": False,
             "velocity_field_path": os.path.join(os.path.dirname(__file__), "velocityCMM3.dat"),
+            "circle_center": [0.4, 0.4],
+            "circle_radius": 0.1,
+            "circle_value": 1
         }
         
-        self.ui.label["text"] = self.name + " (animating until t = " +  str(outputs["time_max"]) + "s)"
+        sim = simulation.Simulation(**outputs)
         
+        plt.close('all')
+        figure, self.axes = plt.figure(), plt.axes()
+        self.axes.set_xlabel("x")
+        self.axes.set_ylabel("y")
+        sim.calculate_concentrations()
+        self.highlighted = np.copy(sim.concentrations)
+        self.heatmap = self.axes.imshow(sim.concentrations, animated=True, \
+                                        extent=(sim.min[X], sim.max[X], sim.min[Y], sim.max[Y]))
         # Color gradient which goes blue to green to green (0.0 to 0.3 to 1.0).
-        color_gradient = dict(blue  = [(0.0, 0.0, 1.0), (0.3, 0.0, 1.0), (0.3, 0.0, 0.0),  (1.0, 0.0, 0.0)],
-                              green = [(0.0, 0.0, 0.0), (0.3, 0.7, 1.0), (1.0, 1.0, 1.0)],
-                              red   = [(0.0, 0.0, 0.0), (0.3, 0.0, 1.0), (0.3, 0.0, 0.0),  (1.0, 0.0, 0.0)])
+        cmap = matplotlib.colors.LinearSegmentedColormap.from_list("", [(0, 'b'), (0.3, 'g'), \
+                                                                        (0.3, 'lime'), (1, 'lime')])
+        self.heatmap.set_cmap(cmap)
+        figure.colorbar(matplotlib.cm.ScalarMappable(cmap=cmap))
         
-        sim = simulation.Simulation(color_gradient, **outputs)
-
-        sim.add_circle(center=[0.4, 0.4], radius=0.1, value=1)
+        anim = animation.FuncAnimation(figure, func=self.animate_plot, \
+                                       fargs=(sim,), frames=sim.steps, \
+                                       interval=1, repeat=False)
         
-        sim.setup_animated_plot()
-        
-        self.ui.create_plot(sim.figure, self.press, self.ui.create_menu_buttons).draw()
-        
+        self.ui.label["text"] = self.name + " (animating until t = " +  str(sim.time_max) + "s)"
+        self.ui.embed_plot(figure, self.press, self.ui.create_menu_buttons).draw()
+    
+    def animate_plot(self, step: int, sim: simulation.Simulation):
+        self.axes.set_title("Time: " + str(round(step * sim.dt, 3)))
+        sim.calculate_concentrations()
+        above_threshold = np.logical_or(sim.concentrations >= 0.3, self.highlighted >= 0.3)
+        self.highlighted = np.where(above_threshold, 1.0, sim.concentrations)
+        self.heatmap.set_array(self.highlighted)
+        if step > 0:
+            sim.update()
 
 UserInterface(os.path.join(os.path.dirname(__file__), "gui/input_boxes.json"))
