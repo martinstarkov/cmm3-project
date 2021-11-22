@@ -19,7 +19,7 @@ def read_data_file(file, *columns):
             data.append(np.genfromtxt(file, usecols=tuple(column), invalid_raise=True))
         except:
             print("Could not retrieve " + str(column) + " columns from file " + str(os.path.basename(file)))
-            return None
+            return [None for column in columns]
     return data
 
 # Converts a relative file path to an absolute file object.
