@@ -13,7 +13,7 @@ import utility
 # TODO: Add short description at the top of this file.
 
 # Tkinter embedded plot fix for macOS.
-if system_platform is 'darwin':
+if system_platform == 'darwin':
     import matplotlib
     matplotlib.use("TkAgg")
 
@@ -323,7 +323,7 @@ class ValidationTasks(MainMenuButton):
     # Called by plot buttons, collects and parses user entries into a dictionary.
     # If all the required information is found, continues on to plot the requested type of graph.
     def collect_outputs(self, type: str):
-        if type is "reference_comparison":
+        if type == "reference_comparison":
             self.plot(type)
         else:
             # Parse the entry field values into the outputs array.
@@ -338,7 +338,7 @@ class ValidationTasks(MainMenuButton):
     
     # Plots the selected type of rmse / comparison graph.
     def plot(self, type: str):
-        if type is "reference_comparison":
+        if type == "reference_comparison":
             # Obtain particle array for comparison from JSON file.
             particles = np.array(self.data["reference_comparison"]["particles"]).astype(int)
             dt = self.data["reference_comparison"]["dt"]
@@ -356,9 +356,9 @@ class ValidationTasks(MainMenuButton):
             # Find the RMSE values for given particles and dts, also retrieve fitting information for the graph.
             rmse_array, fitted_values, fitting_parameters = self.validation.fit_rmse_curve(particles, dts)
             
-            if type is "linear":
+            if type == "linear":
                 figure = self.validation.rmse_figure(particles, dts, rmse_array, "linear", False)
-            elif type is "log":
+            elif type == "log":
                 figure = self.validation.rmse_figure(particles, dts, rmse_array, "log", True, fitted_values, fitting_parameters)
                 # Print the β values in case the user desires to copy them from the console. 
                 print("β values: " + str([b for a, b in fitting_parameters]))
@@ -479,11 +479,11 @@ class CustomConditions(MainMenuButton):
             valid &= utility.check(coordinates is not None and vectors is not None, "Velocity field data file does not contain the required data columns") 
         
         if outputs["use_circle"]:
-            valid &= utility.check(outputs["circle_value"] is 0 or outputs["circle_value"] is 1, "Circle concentration must start as 0 or 1 (red or blue)")
+            valid &= utility.check(outputs["circle_value"] == 0 or outputs["circle_value"] == 1, "Circle concentration must start as 0 or 1 (red or blue)")
             valid &= utility.check(outputs["circle_radius"] >= 0, "Circle radius must be greater than or equal to 0")
         
         if outputs["use_rectangle"]:
-            valid &= utility.check(outputs["rectangle_value"] is 0 or outputs["rectangle_value"] is 1, "Rectangle concentration must start as 0 or 1 (red or blue)")
+            valid &= utility.check(outputs["rectangle_value"] == 0 or outputs["rectangle_value"] == 1, "Rectangle concentration must start as 0 or 1 (red or blue)")
 
         return valid
 
