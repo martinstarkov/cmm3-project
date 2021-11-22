@@ -1,0 +1,120 @@
+{
+    "Animated Chemical Spill": {
+        "parameters": {
+            "time_max": 2,
+            "dt": 0.005,
+            "diffusivity": 0.1,
+            "particle_count": 80000,
+            "min": [-1.0, -1.0],
+            "max": [1.0, 1.0],
+            "cell_size": [100, 100],
+            "circle_center": [0.4, 0.4],
+            "circle_radius": 0.1,
+            "circle_value": 1,
+            "animated": true,
+            "use_velocity": true,
+            "use_circle": true,
+            "use_rectangle": false,
+            "velocity_field_path": "velocityCMM3.dat"
+        },
+        "highlight_threshold": 0.3,
+        "color_map": [
+            [0.0, "blue"], 
+            [0.3, "green"], 
+            [0.3, "lime"], 
+            [1.0, "lime"]
+        ]
+    },
+
+    "Validation Tasks": {
+        "parameters": {
+            "time_max": 0.2,
+            "diffusivity": 0.1,
+            "min": [-1.0, -1.0],
+            "max": [1.0, 1.0],
+            "cell_size": [64, 1],
+            "rectangle_min": [-1.0, -1.0],
+            "rectangle_max": [0.0, 1.0],
+            "rectangle_value": 1,
+            "use_velocity": false,
+            "use_circle": false,
+            "use_rectangle": true,
+            "reference_file_path": "reference_solution_1D.dat"
+        },
+        "reference_comparison": {
+            "particles": [1000, 10000, 100000],
+            "dt": 0.01
+        },
+        "rmse": {
+            "particle_divisions": 40,
+            "particle_min": 100, 
+            "particle_max": 50000,
+            "dt_divisions": 4,
+            "dt_min": 0.005,
+            "dt_max": 0.2
+        }
+    },
+
+    "Custom Conditions": {
+        "color_map": [
+            [0.0, "red"], 
+            [1.0, "blue"]
+        ],
+        "fields": {
+            "Time (s) (float)": {
+                "type": "numeric",
+                "key": "time_max",
+                "default": 1.0
+            },
+            "Time Step (s) (float)": {
+                "type": "numeric",
+                "key": "dt",
+                "default": 0.01
+            },
+            "Diffusivity (float)": {
+                "type": "numeric",
+                "key": "diffusivity",
+                "default": 0.1
+            },
+            "Particle Count (int)": {
+                "type": "numeric",
+                "key": "particle_count",
+                "default": 65000
+            },
+            "Domain (floats)": {
+                "type": "domain",
+                "key": ["min", "max"],
+                "default": [[-1.0, -1.0], [1.0, 1.0]]
+            },
+            "Cell Size (ints)": {
+                "type": "cell",
+                "key": "cell_size",
+                "default": [64, 64]
+            },
+            "Animated (bool)": {
+                "type": "boolean",
+                "key": ["animated"],
+                "default": [true],
+                "button_image": ["gui/off.png", "gui/on.png"]
+            },
+            "Velocity Field (file)": {
+                "type": "field",
+                "key": ["use_velocity", "velocity_field_path"],
+                "default": [true, "velocityCMM3.dat"],
+                "button_image": ["gui/off.png", "gui/on.png"]
+            },
+            "Add Circle (int, floats)": {
+                "type": "circle",
+                "key": ["use_circle", "circle_value", "circle_center", "circle_radius"],
+                "default": [false, 1, [0.4, 0.4], 0.1],
+                "button_image": ["gui/off.png", "gui/on.png"]
+            },
+            "Add Rectangle (int, floats)": {
+                "type": "rectangle",
+                "key": ["use_rectangle", "rectangle_value", "rectangle_min", "rectangle_max"],
+                "default": [true, 1, [-1.0, -1.0], [0.0, 1.0]],
+                "button_image": ["gui/off.png", "gui/on.png"]
+            }
+        }
+    }
+}
