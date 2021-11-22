@@ -299,8 +299,6 @@ class ChemicalSpill(MainMenuButton):
         # Create an array to store all the highlighted concentrations.
         self.highlighted = np.copy(self.sim.concentrations)
 
-        anim = animation.FuncAnimation(
-            figure, func=self.animate_plot, frames=self.sim.steps, interval=1, repeat=False)
 
         self.ui.label["text"] = self.name + " (animating until t=" + str(self.sim.time_max) + "s," + \
                                             "dt=" + str(self.sim.dt) + "s) \n" + \
@@ -312,7 +310,9 @@ class ChemicalSpill(MainMenuButton):
         utility.create_button(self.ui.container, "Back", 2, 0, self.ui.create_menu_buttons, pady=(
             5, 0), ipady=15, fg="black", bg="pink")
 
-        self.ui.embed_plot(figure).draw()
+        self.canvas = self.ui.embed_plot(figure)
+        self.anim = animation.FuncAnimation(
+            figure, func=self.animate_plot, frames=self.sim.steps, interval=1, repeat=False, blit=False)
 
     def animate_plot(self, step: int):
         self.axes.set_title("Time: " + str(round(step * self.sim.dt, 2)))
@@ -327,6 +327,7 @@ class ChemicalSpill(MainMenuButton):
         # Enables plotting t = 0s.
         if step > 0:
             self.sim.update()
+        self.canvas.draw()
 
 
 class ValidationTasks(MainMenuButton):
@@ -515,8 +516,6 @@ class CustomConditions(MainMenuButton):
         if self.sim.animated:
             self.ui.label["text"] = self.name + " (animating until t=" + str(self.sim.time_max) + "s," + \
                                                 "dt=" + str(self.sim.dt) + "s)"
-            self.anim = animation.FuncAnimation(figure, func=self.animate_plot,
-                                                frames=self.sim.steps, interval=1, repeat=False)
         else:
             self.ui.label["text"] = self.name
             self.axes.set_title("Time: " + str(self.sim.time_max))
@@ -526,7 +525,10 @@ class CustomConditions(MainMenuButton):
         utility.create_button(self.ui.container, "Back", 2, 0, self.press, pady=(
             5, 0), ipady=15, fg="black", bg="pink")
 
-        self.ui.embed_plot(figure).draw()
+        self.canvas = self.ui.embed_plot(figure)
+        if self.sim.animated:
+            self.anim = animation.FuncAnimation(figure, func=self.animate_plot,
+                                                frames=self.sim.steps, interval=1, repeat=False)
 
     # Animation function called once per frame of animation, updates the heatmap with new concentrations.
     def animate_plot(self, step: int):
@@ -536,6 +538,7 @@ class CustomConditions(MainMenuButton):
         # Enables plotting t = 0s.
         if step > 0:
             self.sim.update()
+        self.canvas.draw()
 
     # Validates entry field inputs and notifies the user if any or all of them do not fit required criteria.
     def output_validation(self, outputs: Dict[str, any]):
