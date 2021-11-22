@@ -55,8 +55,8 @@ class UserInterface(object):
         self.label_text = "Please choose a mode of operation."
         self.label = utility.create_label(self.frame, self.label_text, 1, 1)
 
-    # Creates the main menu navigation buttons.
     def create_menu_buttons(self):
+        # Creates the main menu navigation buttons.
         utility.clear_widgets(self.container)
         self.label["text"] = self.label_text
         self.container = utility.create_frame(self.frame, 2, 1)
@@ -158,8 +158,8 @@ class ToggleInputField(InputField):
         self.entries = [self.state.get()]
         self.update()
 
-    # Updates the state of the widget containers and entry state.
     def update(self):
+        # Updates the state of the widget containers and entry state.
         if self.state.get():
             self.appear()
         else:
@@ -298,7 +298,6 @@ class ChemicalSpill(MainMenuButton):
 
         # Create an array to store all the highlighted concentrations.
         self.highlighted = np.copy(self.sim.concentrations)
-
 
         self.ui.label["text"] = self.name + " (animating until t=" + str(self.sim.time_max) + "s," + \
                                             "dt=" + str(self.sim.dt) + "s) \n" + \
@@ -500,8 +499,8 @@ class CustomConditions(MainMenuButton):
         if not utility.contains_value(self.outputs, None) and self.output_validation(self.outputs):
             self.plot()
 
-    # Plots the desired type of concentration graph.
     def plot(self):
+        # Plots the desired type of concentration graph.
         utility.clear_widgets(self.ui.container)
 
         self.sim = simulation.Simulation(self.outputs)
@@ -530,8 +529,8 @@ class CustomConditions(MainMenuButton):
             self.anim = animation.FuncAnimation(figure, func=self.animate_plot,
                                                 frames=self.sim.steps, interval=1, repeat=False)
 
-    # Animation function called once per frame of animation, updates the heatmap with new concentrations.
     def animate_plot(self, step: int):
+        # Animation function called once per frame of animation, updates the heatmap with new concentrations.
         self.axes.set_title("Time: " + str(round(step * self.sim.dt, 2)))
         self.sim.calculate_concentrations()
         self.heatmap.set_array(self.sim.concentrations)
@@ -540,8 +539,8 @@ class CustomConditions(MainMenuButton):
             self.sim.update()
         self.canvas.draw()
 
-    # Validates entry field inputs and notifies the user if any or all of them do not fit required criteria.
     def output_validation(self, outputs: Dict[str, any]):
+        # Validates entry field inputs and notifies the user if any or all of them do not fit required criteria.
         # All conditions must be met in order for validity to hold.
         valid = utility.check(outputs["time_max"] > 0, "Max time must be greater than 0") & \
             utility.check(outputs["dt"] > 0, "Time step must be greater than 0") & \
