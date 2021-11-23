@@ -77,9 +77,36 @@ def create_heatmap(data: npt.ArrayLike, color_list: List[any],
     figure.colorbar(matplotlib.cm.ScalarMappable(cmap=cmap))
     return figure, axes, heatmap
 
+def create_line_plot(x_data: any, y_data: any,
+                     x_min: float, x_max: float,
+                     y_min: float, y_max: float,
+                     x_label: str, y_label: str):
+    """Creates a line plot figure used for plotting 1D concentration data.
+    Args:
+        x_data: X axis data to be plotted.
+        y_data: Y axis data to be plotted.
+        x_min:  X axis lower bound.
+        x_max:  X axis upper bound.
+        y_min:  Y axis lower bound.
+        y_max:  Y axis upper bound.
+        x_label:    X axis label.
+        y_label:    Y axis label.
+    Returns:
+        A figure, its axes, and the created line object.
+    """
+    # Close all previous plots to improve performance.
+    plt.close('all')
+    figure, axes = plt.figure(), plt.axes()
+    lines, = plt.plot(x_data, y_data)
+    plt.grid()
+    plt.xlim(x_min, x_max)
+    plt.ylim(y_min, y_max)
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+    return figure, axes, lines
 
 def configure_plot(title: str, x_label: str, y_label: str, scale: str):
-    """Sets up a plot with the desired parameters."""
+    """Sets the matplotlib plot to have with the desired parameters."""
     plt.title(title)
     plt.legend()
     plt.grid()
@@ -87,7 +114,6 @@ def configure_plot(title: str, x_label: str, y_label: str, scale: str):
     plt.xscale(scale)
     plt.xlabel(x_label)
     plt.ylabel(y_label)
-
 
 """
 The utility functions below are primarily there to reduce boilerplate 
