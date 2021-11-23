@@ -11,6 +11,11 @@ import simulation
 import validation
 import utility
 
+"""
+This file implements all the user interface related functionality 
+and acts as an entry point to the application.
+"""
+
 # Tkinter embedded plot fix for macOS.
 if system_platform == 'darwin':
     import matplotlib
@@ -20,17 +25,22 @@ if system_platform == 'darwin':
 if sys.version_info[0:2] < (3, 7):
     raise Exception('GUI requires at least Python 3.7 to run')
 
-# These variables alias indexes. This improves code
-# readability when accessing multi-dimensional arrays.
+"""
+These variables alias indexes. This improves code
+readability when accessing multi-dimensional arrays.
+"""
 X = 0
 Y = 1
+# Used for naming plot axes based on the above dimension alias.
 dimension_labels = {
     0: "X",
     1: "Y"
 }
 
-# Parent user interface class which creates a graphical
-# window and branches the program out to specific tasks.
+"""
+Parent user interface class which creates a graphical
+window and branches the program out to specific tasks.
+"""
 class UserInterface(object):
     def __init__(self, json_file_path):
         self.json_file_path = json_file_path
@@ -49,8 +59,9 @@ class UserInterface(object):
             self.create_menu_buttons()
             self.root.mainloop()
 
+
     def create_header(self):
-        # Create the GUI logo.
+        """Creates the GUI logo."""
         utility.create_image(self.frame, 
                              utility.relative_to_absolute(__file__, "gui/logo.png"), 0, 1)
         # Create the GUI instruction text.
@@ -58,8 +69,9 @@ class UserInterface(object):
         self.label_text = "Please choose a mode of operation."
         self.label = utility.create_label(self.frame, self.label_text, 1, 1)
 
+
     def create_menu_buttons(self):
-        # Creates the main menu navigation buttons.
+        """Creates the main menu navigation buttons."""
         utility.clear_widgets(self.container)
         self.label["text"] = self.label_text
         self.container = utility.create_frame(self.frame, 2, 1)
@@ -70,18 +82,31 @@ class UserInterface(object):
         ValidationTasks("Validation Tasks", self, 1)
         CustomConditions("Custom Conditions", self, 2)
 
-    # Default relative row height is based on having a 
-    # small reset plot and back button below the plot.
+
     def embed_plot(self, figure: any, row_heights: any = [80, 4, 4]):
+        """Embed the figure into the user interface window.
+        Args:
+            figure:      Figure to embed in the user interface.
+            row_heights: Relative row heights of the ui container. Defaults to [80, 4, 4].
+                         which is s based on having a reset plot and back button below the plot.
+        """
         canvas = FigureCanvasTkAgg(figure, master=self.container)
         canvas.get_tk_widget().grid(row=0, column=0)
         utility.set_grid_sizes(self.container, row_heights, [100])
         return canvas
 
-# Abstract class which represents an input row.
+
+"""
+Abstract class which represents an input entry field.
+"""
 class InputField(object):
-    # Field info contains the input field info from the JSON file.
     def __init__(self, ui: UserInterface, field_info: Dict[str, any], row: int):
+        """
+        Args:
+            ui:         Reference to the user interface class instance.
+            field_info: Contains the input field info from the JSON file.
+            row:        Row on which to place the user input field.
+        """
         self.field_info = field_info
         self.defaults = self.field_info["default"]
         # Used for storing the entry fields of the given input field.
@@ -91,15 +116,23 @@ class InputField(object):
         utility.set_grid_sizes(self.sub_container, columns=[50, 50],
                                uniform_row="sub_container", uniform_column="sub_container")
 
-    # Determines what occurs when an input field is created on the screen.
-    # Child classes inherit this and implement their own specific input field formatting.
+
     def create(self, text: str):
+        """
+        Determines what occurs when an input field is created on the screen.
+        Child classes inherit this and implement their own specific input field formatting.
+        Args:
+            text: Name of the input entry field from the JSON file.
+        """
         self.key = text
         utility.create_label(self.sub_container, text, 0, 0)
 
-# All the classes below which inherit from InputField define a create method which expresses
-# how that type of input field is created. This allows for flexible creation of unique
-# user interface elements with very little effort.
+"""
+All the classes below which inherit from InputField define a create method which expresses
+how that type of input field is created. This allows for flexible creation of unique
+user interface elements with very little effort.
+"""
+
 class NumericInputField(InputField):
     def create(self, text: str):
         # Creates a simple input parameter box with a default value.
@@ -107,11 +140,9 @@ class NumericInputField(InputField):
                                             self.field_info["default"], 
                                             0, 1, width=20)
 
-
 class DomainInputField(InputField):
     def create(self, text: str):
         domain_container = utility.create_frame(self.sub_container, 0, 1)
-
         utility.create_label(domain_container, "≤ x ≤", 0, 1)
         utility.create_label(domain_container, "≤ y ≤", 1, 1)
         self.entries.append([
@@ -124,14 +155,12 @@ class DomainInputField(InputField):
                                  0, 2, sticky="EW", width=5),
             utility.create_entry(domain_container, self.defaults[1][Y],
                                  1, 2, sticky="EW", width=5)])
-
         utility.set_grid_sizes(domain_container, [50, 50], [40, 20, 40])
 
 
 class CellInputField(InputField):
     def create(self, text: str):
         cell_container = utility.create_frame(self.sub_container, 0, 1)
-
         utility.create_label(cell_container, u'Nₓ =', 0, 0)
         utility.create_label(cell_container, u'Nᵧ =', 1, 0)
         self.entries.append(
@@ -140,14 +169,16 @@ class CellInputField(InputField):
         self.entries.append(
             utility.create_entry(cell_container, self.defaults[Y],
                                  1, 1, sticky="EW", width=5))
-
         utility.set_grid_sizes(cell_container, [50, 50], [15, 85])
 
 
+"""
+Parent class for toggleable input entry fields.
+Can also be used without inheritence (not abstract).
+"""
 class ToggleInputField(InputField):
     def create(self, text: str):
         super().create(text)
-
         # Create sub containers for the toggle button and
         # toggleable content and size them correctly.
         container = utility.create_frame(self.sub_container, 0, 1)
@@ -165,28 +196,33 @@ class ToggleInputField(InputField):
                                        onvalue=True, offvalue=False, 
                                        command=self.update)
         toggle_button.grid(row=0, column=0, sticky="NSEW")
-
+        
         if not self.state.get():  # By default, checkbutton starts checked.
             toggle_button.deselect()
         self.entries = [self.state.get()]
         self.update()
 
+
     def update(self):
-        # Updates the state of the widget containers and entry state.
+        """Updates the state of the widget containers and entry."""
         if self.state.get():
             self.appear()
         else:
             self.disappear()
         self.entries[0] = self.state.get()
 
-    # Nothing appears for boolean toggles.
-    # Overriden with functionality in child classes.
-    # Defines what occurs when the toggle button becomes ticked (toggled on).
+
     def appear(self):
+        """
+        Nothing appears for boolean toggles.
+        Overriden with functionality in child classes.
+        Defines what occurs when the toggle button becomes ticked (toggled on).
+        """
         pass
 
-    # Removes all the non toggle button widgets.
+
     def disappear(self):
+        """Removes all the non toggle button widgets."""
         utility.clear_widgets(self.input_container)
         self.entries = [self.state.get()]
 
@@ -195,20 +231,20 @@ class VelocityInputField(ToggleInputField):
     def appear(self):
         utility.set_grid_sizes(self.input_container, columns=[100])
         file_container = utility.create_frame(self.input_container, 0, 0)
-
         utility.create_button(file_container, "Open File",
                               0, 0, self.open_file)
-
         self.path_label = utility.create_label(
             file_container, "File: " + self.defaults[1], 1, 0)
         self.entries.append(
             utility.relative_to_absolute(__file__, self.defaults[1]))
-
         utility.set_grid_sizes(file_container, [50, 50], [100])
 
-    # Opens a directory browser to prompt the 
-    # user for a velocity field data file.
+
     def open_file(self):
+        """
+        Opens a directory browser to prompt the 
+        user for a velocity field data file.
+        """
         file = askopenfile(mode='r', 
                            filetypes=[('Velocity Field Data Files', '*.dat')])
         if file is not None:
@@ -222,13 +258,11 @@ class CircleInputField(ToggleInputField):
         utility.set_grid_sizes(self.input_container, columns=[50, 50])
         phi_container = utility.create_frame(self.input_container, 0, 0)
         circle_container = utility.create_frame(self.input_container, 0, 1)
-
         utility.create_label(phi_container, "φ =", 1, 0)
         utility.create_label(phi_container, "", 0, 0)
         utility.create_label(circle_container, "x", 0, 0)
         utility.create_label(circle_container, "y", 0, 1)
         utility.create_label(circle_container, "radius", 0, 2)
-
         self.entries.append(
             utility.create_entry(phi_container, self.defaults[1], 
                                  1, 1, sticky="EW", padx=(0, 5), width=5))
@@ -240,7 +274,6 @@ class CircleInputField(ToggleInputField):
         self.entries.append(
             utility.create_entry(circle_container, self.defaults[3],
                                  1, 2, sticky="EW", width=5))
-
         utility.set_grid_sizes(phi_container, [50, 50], [40, 60])
         utility.set_grid_sizes(circle_container, [50, 50], [33, 33, 33])
 
@@ -250,11 +283,9 @@ class RectangleInputField(ToggleInputField):
         utility.set_grid_sizes(self.input_container, columns=[50, 50])
         phi_container = utility.create_frame(self.input_container, 0, 0)
         extents_container = utility.create_frame(self.input_container, 0, 1)
-
         utility.create_label(phi_container, "φ =", 0, 0)
         utility.create_label(extents_container, "≤ x ≤", 0, 1)
         utility.create_label(extents_container, "≤ y ≤", 1, 1)
-
         self.entries.append(
             utility.create_entry(phi_container, self.defaults[1],
                                  0, 1, sticky="EW", padx=(0, 5), width=5))
@@ -268,13 +299,14 @@ class RectangleInputField(ToggleInputField):
                                  0, 2, sticky="EW", width=5),
             utility.create_entry(extents_container, self.defaults[3][Y],
                                  1, 2, sticky="EW", width=5)])
-
         utility.set_grid_sizes(phi_container, [100], [40, 60])
         utility.set_grid_sizes(extents_container, [50, 50], [33, 33, 33])
 
 
-# Dictionary of input types and their associated classes.
-# Used for generating the user interface based on the JSON configuration file.
+"""
+Dictionary of input types and their associated classes.
+Used for generating the user interface based on the JSON configuration file.
+"""
 input_dictionary = {
     "numeric": NumericInputField,
     "cell": CellInputField,
@@ -285,9 +317,16 @@ input_dictionary = {
     "rectangle": RectangleInputField,
 }
 
-# Abstract class which represents main menu buttons.
+
+"""Abstract class which represents main menu buttons."""
 class MainMenuButton(object):
     def __init__(self, name: str, ui: UserInterface, row: int):
+        """
+        Args:
+            name: Name and key of the button.
+            ui:   Reference to a user interface instance.
+            row:  Row number to place the button at.
+        """
         self.name = name
         self.ui = ui
         self.data = self.ui.data[self.name]
@@ -295,15 +334,19 @@ class MainMenuButton(object):
                                             self.press,sticky="EW", 
                                             pady=10, ipady=40, fg="black", bg="pink")
 
-    # Defines what happens when a main menu button is pressed.
-    # This is overriden in child classes with specific behavior.
+
     def press(self):
+        """
+        Defines what happens when a main menu button is pressed.
+        This is overriden in child classes with specific behavior.
+        """
         # Whenever a main menu button is pressed, the container is cleared and
         # the label below the logo is set to the name of the main menu button.
         utility.clear_widgets(self.ui.container)
         self.ui.label["text"] = self.name
 
 
+"""Responsible for creating and managing the chemical spill plot"""
 class ChemicalSpill(MainMenuButton):
     def press(self):
         super().press()
@@ -325,6 +368,7 @@ class ChemicalSpill(MainMenuButton):
         # Create an array to store all the highlighted concentrations.
         self.highlighted = np.copy(self.sim.concentrations)
 
+        # Update the top label with relevant information.
         self.ui.label["text"] = self.name + " (animating until t=" + \
                                 str(self.sim.time_max) + "s," + \
                                 "dt=" + str(self.sim.dt) + "s) \n" + \
@@ -340,17 +384,26 @@ class ChemicalSpill(MainMenuButton):
                               ipady=15, fg="black", bg="pink")
 
         self.canvas = self.ui.embed_plot(figure)
+        # Enables the plot to be animated
         self.anim = animation.FuncAnimation(figure, func=self.animate_plot,
                                             frames=self.sim.steps, interval=1,
                                             repeat=False, blit=False)
 
+
     def animate_plot(self, step: int):
+        """Animation function called once per step of the simulation.
+        Args:
+            step: Current step of the simulation.
+        """
         self.axes.set_title("Time: " + str(round(step * self.sim.dt, 2)) + "s")
+        # Recalculate concentrations every simulation step.
         self.sim.calculate_concentrations()
-        # Check if a concentration is above the highlighted threshold in either array.
+        # Check if a concentration is above the highlighted 
+        # threshold in either array.
         above_threshold = np.logical_or(self.sim.concentrations > self.highlight_threshold,
                                         self.highlighted > self.highlight_threshold)
-        # Update the highlighted array with the points where the threshold is exceeded.
+        # Update the highlighted array with the points 
+        # where the threshold is exceeded (masking).
         self.highlighted = np.where(above_threshold, 1.0, self.sim.concentrations)
         self.heatmap.set_array(self.highlighted)
         # Enables plotting t = 0.
@@ -359,6 +412,7 @@ class ChemicalSpill(MainMenuButton):
         self.canvas.draw()
 
 
+"""Responsible for creating and managing the validation task menu"""
 class ValidationTasks(MainMenuButton):
     def press(self):
         super().press()
@@ -377,7 +431,6 @@ class ValidationTasks(MainMenuButton):
         utility.set_grid_sizes(input_container,
                                rows=[50, 50],
                                columns=[20, 20, 20, 15, 15, 15])
-
         utility.create_label(input_container,
                              "logarithmic particle divisions (int) =", 1, 0)
         utility.create_label(input_container,
@@ -387,6 +440,7 @@ class ValidationTasks(MainMenuButton):
         utility.create_label(input_container,
                              "≤ dts (s) (floats) ≤", 2, 4)
 
+        # Store the RMSE optional entries for parsing the data later.
         self.inputs = []
         self.inputs.append(
             utility.create_entry(input_container, 
@@ -420,9 +474,15 @@ class ValidationTasks(MainMenuButton):
         utility.create_button(self.ui.container, "Back", 4, 0, self.ui.create_menu_buttons,
                               pady=(5, 0), ipady=10, sticky="EW", fg="black", bg="pink")
 
-    # Called by plot buttons, collects and parses user entries into a dictionary.
-    # If all the required information is found, continues on to plot the requested type of graph.
+
     def collect_outputs(self, type: str):
+        """
+        Called by plot buttons, collects and parses user entries
+        into a dictionary. If all the required information is found, 
+        continues on to plot the requested type of graph.
+        Args:
+            type: The type of plotting to perform (passed down the call chain).
+        """
         if type == "reference_comparison":
             self.plot(type)
         else:
@@ -438,8 +498,12 @@ class ValidationTasks(MainMenuButton):
             if not utility.contains_value(self.outputs, None) and self.output_validation(self.outputs):
                 self.plot(type)
 
-    # Plots the selected type of rmse / comparison graph.
+
     def plot(self, type: str):
+        """Plots the selected type of rmse / comparison graph.
+        Args:
+            type: Type of graph to plot (can be "reference_comparison", "linear" or "log")
+        """
         figure = None
         if type == "reference_comparison":
             # Obtain particle array for comparison from JSON file.
@@ -450,10 +514,12 @@ class ValidationTasks(MainMenuButton):
                    "Particle array for reference comparison cannot have numbers less than 1"
             assert dt <= self.data["parameters"]["time_max"], \
                    "Cannot use greater dt than time max for reference comparison"
+            # Create a reference comparison figure.
             figure = self.validation.reference_comparison_figure(particles, dt,
                                                                  line_styles=['--', '-.', ':'])
         else:
             # Convert particle min and max to exponents for logspace domain to work properly.
+            # This is essentially taking a number N and turning it into a, where a is N=10^a
             extents = np.log([self.outputs["particle_min"],
                               self.outputs["particle_max"]]) / np.log([10])
             particles = np.logspace(extents[0], extents[1],
@@ -486,10 +552,16 @@ class ValidationTasks(MainMenuButton):
                               fg="black", bg="pink")
         self.ui.embed_plot(figure, row_heights=[96, 4]).draw()
 
-    # Validates entry field inputs and notifies the user 
-    # if any or all of them do not fit required criteria.
+
     def output_validation(self, outputs: Dict[str, any]):
-        # All conditions must be met in order for validity to hold.
+        """
+        Validates entry field inputs and notifies the user 
+        if any or all of them do not fit required criteria.
+        Args:
+            outputs: Dictionary full of parameters to validate.
+        Returns:
+            True if all outputs meet the required conditions, false otherwise.
+        """
         simulation_max_time = self.validation.sim_args["time_max"]
         valid = utility.check(outputs["particle_divisions"] > 0,
                               "Number of particle divisions must be greater than 0") & \
@@ -513,6 +585,7 @@ class ValidationTasks(MainMenuButton):
         return valid
 
 
+"""Responsible for creating and managing the custom conditions menu"""
 class CustomConditions(MainMenuButton):
     def press(self):
         super().press()
@@ -524,8 +597,9 @@ class CustomConditions(MainMenuButton):
                                rows=np.full(row_count, relative_height))
 
         self.inputs = []
-        # Generate input field entry boxes based on the json and input dictionary.
+        # Generate and store input field entry boxes based on the json and input dictionary.
         for row, (text, field_info) in enumerate(self.data["fields"].items()):
+            # Find the type of input entry to create from the input dictionary.
             input = input_dictionary[field_info["type"]](self.ui, field_info, row)
             # Call the create function of the parent class (to initialize the label).
             super(type(input), input).create(text)
@@ -540,11 +614,13 @@ class CustomConditions(MainMenuButton):
                               self.ui.create_menu_buttons, pady=(5, 0), ipady=10,
                               fg="black", bg="pink")
 
-    # Called by the run simulation button, collects 
-    # and parses user entries into a dictionary.
-    # If all the required information is found,
-    # continues on to plot the requested type of graph.
     def collect_outputs(self):
+        """
+        Called by the run simulation button, collects 
+        and parses user entries into a dictionary.
+        If all the required information is found,
+        continues on to plot the requested type of graph.
+        """
         # Parse the user input fields for their values.
         self.outputs = {}
         for input in self.inputs:
@@ -564,7 +640,7 @@ class CustomConditions(MainMenuButton):
             self.plot()
 
     def plot(self):
-        # Plots the desired type of concentration graph.
+        """Plots the desired type of concentration graph."""
         utility.clear_widgets(self.ui.container)
 
         self.sim = simulation.Simulation(self.outputs)
@@ -578,27 +654,34 @@ class CustomConditions(MainMenuButton):
         one_dimensional_case = False
         
         for i in [X, Y]:
+            # If either cell dimension is == 1, store it and 
+            # the other axis and switch to the 1D plot case. 
             if self.sim.cell_size[i] == 1:
                 one_dimensional_case = True
                 self.single_dimension = i
                 self.other_dimension = (i + 1) % 2
         if one_dimensional_case:
+            # Create an array for the specified domain to plot the concentrations against.
             self.domain = np.linspace(self.sim.min[self.single_dimension],
                                       self.sim.max[self.single_dimension],
                                       self.sim.cell_size[self.other_dimension])
+            # Convert the concentration array to 1D.
             single_dimension_concentration = np.reshape(self.sim.concentrations,
                                                         (self.sim.cell_size[self.other_dimension]))
+            # Create the figure for the concentration versus (x/y) position plot.
             figure, self.axes, self.lines = utility.create_line_plot(
                 self.domain, single_dimension_concentration,
                 self.sim.min[self.single_dimension], self.sim.max[self.single_dimension], 
                 0, 1, dimension_labels[self.single_dimension], "Concentration ϕ")
         else:
+            # Create the heatmap for concentration plotting.
             figure, self.axes, self.heatmap = utility.create_heatmap(self.sim.concentrations, 
                                                                     self.data["color_map"],
                                                                     self.sim.animated,
                                                                     self.sim.min, self.sim.max,
                                                                     "x", "y")
         if self.sim.animated:
+            # Update the label with animation time information.
             self.ui.label["text"] = self.name + " (animating until t=" + \
                                     str(self.sim.time_max) + "s," + \
                                     "dt=" + str(self.sim.dt) + "s)"
@@ -622,10 +705,18 @@ class CustomConditions(MainMenuButton):
             
 
     def animate_plot(self, step: int, one_dimensional: bool):
-        # Animation function called once per frame of animation, updates the heatmap with new concentrations.
+        """
+        Animation function called once per frame of simulation animation, 
+        updates the heatmap or 1D line plot with new concentrations.
+        Args:
+            step:            Current step of the simulation.
+            one_dimensional: Whether to use 1D or 2D.
+        """
         self.axes.set_title("Time: " + str(round(step * self.sim.dt, 2)) + "s")
+        # Recalculate concentrations every simulation step.
         self.sim.calculate_concentrations()
         if one_dimensional:
+            # Concentrations array needs to be converted to 1D before it is set.
             self.lines.set_data(self.domain, np.reshape(self.sim.concentrations,
                                                         (self.sim.cell_size[self.other_dimension])))
         else:
@@ -636,8 +727,15 @@ class CustomConditions(MainMenuButton):
         self.canvas.draw()
 
     def output_validation(self, outputs: Dict[str, any]):
-        # Validates entry field inputs and notifies the user if any or all of them do not fit required criteria.
-        # All conditions must be met in order for validity to hold.
+        """
+        Validates entry field inputs and notifies the user
+        if any or all of them do not fit required criteria.
+        All conditions must be met in order for validity to hold.
+        Args:
+            outputs: Dictionary full of parameters to validate.
+        Returns:
+            True if all outputs meet the required conditions, false otherwise.
+        """
         valid = utility.check(outputs["time_max"] > 0,
                               "Max time must be greater than 0") & \
                 utility.check(outputs["dt"] > 0,
@@ -680,5 +778,6 @@ class CustomConditions(MainMenuButton):
         return valid
 
 
+"""Entry point to the application"""
 if __name__ == "__main__":
     UserInterface(utility.relative_to_absolute(__file__, "config.json"))
