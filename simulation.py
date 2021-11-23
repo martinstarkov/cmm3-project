@@ -48,8 +48,10 @@ class Simulation(object):
             # coordinates and vectors of the velocity field respectively.
             self.velocity_coordinates, self.velocity_vectors = utility.read_data_file(self.velocity_field_path,
                                                                                       [0, 1], [2, 3])
-            assert self.velocity_coordinates != None, "Could not retrieve velocity coordinates from data file"
-            assert self.velocity_vectors != None,     "Could not retrieve velocity vectors from data file"
+            assert not isinstance(self.velocity_coordinates, type(None)), \
+                "Could not retrieve velocity coordinates from data file"
+            assert not isinstance(self.velocity_vectors, type(None)), \
+                "Could not retrieve velocity vectors from data file"
             """
             A KDTree is a space partioning structure which allows the user to query any coordinate
             using its nearest neighbors. This allows for the retrieval of velocity vectors for the
@@ -84,9 +86,7 @@ class Simulation(object):
     
     
     def __validate_parameters(self):
-        """
-        Check that no parameter passed to the simulation is outside its expected envelope.
-        """
+        """Check that no parameter passed to the simulation is outside its expected envelope."""
         assert self.time_max > 0,         "Max time must be greater than 0"
         assert self.dt > 0,               "Time step must be greater than 0"
         assert self.dt <= self.time_max,  "Time step cannot exceed maximum time"
@@ -108,8 +108,7 @@ class Simulation(object):
 
 
     def __add_rectangle(self, minimum: List[float], maximum: List[float], value: int):
-        """
-        Adds a rectangle to the particle field.
+        """Adds a rectangle to the particle field.
         Args:
             minimum: Left and bottom bounds of the rectangle respectively.
             maximum: Right and top bounds of the rectangle respectively.
@@ -125,8 +124,7 @@ class Simulation(object):
 
 
     def __add_circle(self, center: List[float], radius: float, value: int):
-        """
-        Adds a circle to the particle field.
+        """Adds a circle to the particle field.
         Args:
             center: Center x and y coordinates of the rectangle.
             radius: Radius of the circle.
@@ -140,8 +138,7 @@ class Simulation(object):
 
 
     def __compute_lagrangian(self, velocities: npt.ArrayLike):
-        """
-        Performs the Lagrangian computation in 2 dimensions for each of the particles.
+        """Performs the Lagrangian computation in 2 dimensions for each of the particles.
         Args:
             velocities: Either a 2D (x, y) array of velocities for each coordinate or 0 for no velocity.
         """
@@ -198,9 +195,8 @@ class Simulation(object):
 
 
     def simulate(self, print_time: bool = False):
-        """
-        Simply runs the simulation until completion, calling the update method
-        once for each step of the simulation.
+        """Runs the simulation until completion, calling the update method once for each
+           step of the simulation.
         Args:
             print_time: Whether or not to print the current time step of the simulation
                         in the console. Keeps the user aware of simulation progress.
@@ -247,7 +243,8 @@ class Simulation(object):
         self.concentrations = np.zeros(np.prod(self.cell_size))
         occurences = unique[:, X] * self.cell_size[Y] + unique[:, Y]
         self.concentrations[occurences] = flat_concentrations
-        # Cap concentrations at 1 for the optimized case.
-        self.concentrations = np.where(self.concentrations > 1, 1, self.concentrations)
+        # Cap concentrations at 1.0 for the optimized case as concentration found
+        # to be above the average at the start of the simulation is just a full cell.
+        self.concentrations = np.where(self.concentrations > 1.0, 1.0, self.concentrations)
         # A 90 degree rotation and reshape to 2D is required due to how the indexes were computed in 1D.
         self.concentrations = np.rot90(np.reshape(self.concentrations, self.cell_size))
