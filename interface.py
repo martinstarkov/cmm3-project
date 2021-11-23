@@ -1,9 +1,8 @@
 from sys import platform as system_platform
-from typing import Dict, List
+from typing import Dict
 from tkinter.filedialog import askopenfile
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib import animation
-
 import tkinter as tk
 import numpy as np
 import sys
@@ -73,7 +72,7 @@ class UserInterface(object):
 
     # Default relative row height is based on having a 
     # small reset plot and back button below the plot.
-    def embed_plot(self, figure: any, row_heights = [80, 4, 4]):
+    def embed_plot(self, figure: any, row_heights: any = [80, 4, 4]):
         canvas = FigureCanvasTkAgg(figure, master=self.container)
         canvas.get_tk_widget().grid(row=0, column=0)
         utility.set_grid_sizes(self.container, row_heights, [100])
