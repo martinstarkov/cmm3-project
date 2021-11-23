@@ -3,6 +3,7 @@ from typing import Dict, List
 from tkinter.filedialog import askopenfile
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib import animation
+import matplotlib.pyplot as plt
 import tkinter as tk
 import numpy as np
 import sys
@@ -10,8 +11,6 @@ import json
 import simulation
 import validation
 import utility
-
-# TODO: Add short description at the top of this file.
 
 # Tkinter embedded plot fix for macOS.
 if system_platform == 'darwin':
@@ -26,11 +25,13 @@ if sys.version_info[0:2] < (3, 7):
 # readability when accessing multi-dimensional arrays.
 X = 0
 Y = 1
+dimension_labels = {
+    0: "X",
+    1: "Y"
+}
 
 # Parent user interface class which creates a graphical
 # window and branches the program out to specific tasks.
-
-
 class UserInterface(object):
     def __init__(self, json_file_path):
         self.json_file_path = json_file_path
@@ -79,8 +80,6 @@ class UserInterface(object):
         return canvas
 
 # Abstract class which represents an input row.
-
-
 class InputField(object):
     # Field info contains the input field info from the JSON file.
     def __init__(self, ui: UserInterface, field_info: Dict[str, any], row: int):
@@ -102,8 +101,6 @@ class InputField(object):
 # All the classes below which inherit from InputField define a create method which expresses
 # how that type of input field is created. This allows for flexible creation of unique
 # user interface elements with very little effort.
-
-
 class NumericInputField(InputField):
     def create(self, text: str):
         # Creates a simple input parameter box with a default value.
@@ -290,8 +287,6 @@ input_dictionary = {
 }
 
 # Abstract class which represents main menu buttons.
-
-
 class MainMenuButton(object):
     def __init__(self, name: str, ui: UserInterface, row: int):
         self.name = name
@@ -351,7 +346,7 @@ class ChemicalSpill(MainMenuButton):
                                             repeat=False, blit=False)
 
     def animate_plot(self, step: int):
-        self.axes.set_title("Time: " + str(round(step * self.sim.dt, 2)))
+        self.axes.set_title("Time: " + str(round(step * self.sim.dt, 2)) + "s")
         self.sim.calculate_concentrations()
         # Check if a concentration is above the highlighted threshold in either array.
         above_threshold = np.logical_or(self.sim.concentrations > self.highlight_threshold,
@@ -579,37 +574,61 @@ class CustomConditions(MainMenuButton):
             self.sim.simulate(print_time=True)
             self.sim.calculate_concentrations()
 
-        figure, self.axes, self.heatmap = utility.create_heatmap(self.sim.concentrations, 
-                                                                 self.data["color_map"],
-                                                                 self.sim.animated,
-                                                                 self.sim.min, self.sim.max,
-                                                                 "x", "y")
+        one_dimensional_case = False
+        
+        for i in [X, Y]:
+            if self.sim.cell_size[i] == 1:
+                one_dimensional_case = True
+                self.single_dimension = i
+                self.other_dimension = (i + 1) % 2
+        if one_dimensional_case:
+            self.domain = np.linspace(self.sim.min[self.single_dimension],
+                                      self.sim.max[self.single_dimension],
+                                      self.sim.cell_size[self.other_dimension])
+            single_dimension_concentration = np.reshape(self.sim.concentrations,
+                                                        (self.sim.cell_size[self.other_dimension]))
+            figure, self.axes, self.lines = utility.create_line_plot(
+                self.domain, single_dimension_concentration,
+                self.sim.min[self.single_dimension], self.sim.max[self.single_dimension], 
+                0, 1, dimension_labels[self.single_dimension], "Concentration ϕ")
+        else:
+            figure, self.axes, self.heatmap = utility.create_heatmap(self.sim.concentrations, 
+                                                                    self.data["color_map"],
+                                                                    self.sim.animated,
+                                                                    self.sim.min, self.sim.max,
+                                                                    "x", "y")
         if self.sim.animated:
             self.ui.label["text"] = self.name + " (animating until t=" + \
                                     str(self.sim.time_max) + "s," + \
                                     "dt=" + str(self.sim.dt) + "s)"
         else:
             self.ui.label["text"] = self.name
-            self.axes.set_title("Time: " + str(self.sim.time_max))
+            self.axes.set_title("Time: " + str(self.sim.time_max) + "s")
 
         utility.create_button(self.ui.container, "Reset Plot", 1, 0,
-                              self.plot, pady=(5, 0), ipady=15,
-                              fg="black", bg="pink")
+                            self.plot, pady=(5, 0), ipady=15,
+                            fg="black", bg="pink")
         utility.create_button(self.ui.container, "Back", 2, 0,
-                              self.press, pady=(5, 0), ipady=15,
-                              fg="black", bg="pink")
-
+                            self.press, pady=(5, 0), ipady=15,
+                            fg="black", bg="pink")
+        
         self.canvas = self.ui.embed_plot(figure)
         if self.sim.animated:
+            # Created after canvas to fix animation for macOS.
             self.anim = animation.FuncAnimation(figure, func=self.animate_plot,
-                                                frames=self.sim.steps, 
+                                                frames=self.sim.steps, fargs=(one_dimensional_case,), 
                                                 interval=1, repeat=False)
+            
 
-    def animate_plot(self, step: int):
+    def animate_plot(self, step: int, one_dimensional: bool):
         # Animation function called once per frame of animation, updates the heatmap with new concentrations.
-        self.axes.set_title("Time: " + str(round(step * self.sim.dt, 2)))
+        self.axes.set_title("Time: " + str(round(step * self.sim.dt, 2)) + "s")
         self.sim.calculate_concentrations()
-        self.heatmap.set_array(self.sim.concentrations)
+        if one_dimensional:
+            self.lines.set_data(self.domain, np.reshape(self.sim.concentrations,
+                                                        (self.sim.cell_size[self.other_dimension])))
+        else:
+            self.heatmap.set_array(self.sim.concentrations)
         # Enables plotting t = 0.
         if step > 0:
             self.sim.update()
