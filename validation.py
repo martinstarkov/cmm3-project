@@ -8,8 +8,9 @@ import numpy as np
 import simulation
 import utility
 
-# TODO: Add short description of file here.
+"""
 
+"""
 
 class Validation(object):
     # Sim args is a dictionary containing all the parameters used by the simulation (dt, max time, cell size, etc).
@@ -18,8 +19,8 @@ class Validation(object):
 
         coordinates, concentrations = utility.read_data_file(
             self.sim_args["reference_file_path"], [0], [1])
-        assert coordinates is not None, "Could not retrieve coordinates from reference file"
-        assert concentrations is not None, "Could not retrieve concentrations from reference file"
+        assert not isinstance(coordinates, type(None)),    "Could not retrieve coordinates from reference file"
+        assert not isinstance(concentrations, type(None)), "Could not retrieve concentrations from reference file"
         # Create a linear interpolation function for the reference concentration data.
         reference_function = interp1d(
             coordinates, concentrations, "linear", fill_value="extrapolate")
