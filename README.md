@@ -9,6 +9,7 @@
 If having issues with tkinter, check that it was installed alongside the default Python installation from https://www.python.org/
 
 ### File descriptions
+- `group_8_report.pdf` contains the report accompanying the application.
 - `interface.py` implements all user interface related functionality and acts as an entry point to the application.
 - `simulation.py` implements the mathematics and physics relating to the fluid simulation.
 - `utility.py` contains fairly general utility functions used throughout all files.
