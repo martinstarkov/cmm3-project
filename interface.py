@@ -63,7 +63,7 @@ class UserInterface(object):
     def create_header(self):
         """Creates the GUI logo."""
         utility.create_image(self.frame, 
-                             utility.relative_to_absolute(__file__, "gui/logo.png"), 0, 1)
+                             utility.relative_to_absolute(__file__, "logo.png"), 0, 1)
         # Create the GUI instruction text.
         # (modified by main menu buttons when they are pressed).
         self.label_text = "Please choose a mode of operation."
