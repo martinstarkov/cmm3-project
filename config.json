@@ -1,10 +1,10 @@
 {
     "Animated Chemical Spill": {
         "parameters": {
-            "time_max": 2,
+            "time_max": 3,
             "dt": 0.005,
             "diffusivity": 0.1,
-            "particle_count": 80000,
+            "particle_count": 150000,
             "min": [-1.0, -1.0],
             "max": [1.0, 1.0],
             "cell_size": [100, 100],
@@ -15,6 +15,7 @@
             "use_velocity": true,
             "use_circle": true,
             "use_rectangle": false,
+            "optimized": false,
             "velocity_field_path": "velocityCMM3.dat"
         },
         "highlight_threshold": 0.3,
@@ -39,6 +40,7 @@
             "use_velocity": false,
             "use_circle": false,
             "use_rectangle": true,
+            "optimized": false,
             "reference_file_path": "reference_solution_1D.dat"
         },
         "reference_comparison": {
@@ -91,29 +93,30 @@
                 "key": "cell_size",
                 "default": [64, 64]
             },
+            "Task E Optimization (bool)": {
+                "type": "boolean",
+                "key": ["optimized"],
+                "default": [false]
+            },
             "Animated (bool)": {
                 "type": "boolean",
                 "key": ["animated"],
-                "default": [true],
-                "button_image": ["gui/off.png", "gui/on.png"]
+                "default": [true]
             },
             "Velocity Field (file)": {
                 "type": "field",
                 "key": ["use_velocity", "velocity_field_path"],
-                "default": [true, "velocityCMM3.dat"],
-                "button_image": ["gui/off.png", "gui/on.png"]
+                "default": [true, "velocityCMM3.dat"]
             },
             "Add Circle (int, floats)": {
                 "type": "circle",
                 "key": ["use_circle", "circle_value", "circle_center", "circle_radius"],
-                "default": [false, 1, [0.4, 0.4], 0.1],
-                "button_image": ["gui/off.png", "gui/on.png"]
+                "default": [false, 1, [0.4, 0.4], 0.1]
             },
             "Add Rectangle (int, floats)": {
                 "type": "rectangle",
                 "key": ["use_rectangle", "rectangle_value", "rectangle_min", "rectangle_max"],
-                "default": [true, 1, [-1.0, -1.0], [0.0, 1.0]],
-                "button_image": ["gui/off.png", "gui/on.png"]
+                "default": [true, 1, [-1.0, -1.0], [0.0, 1.0]]
             }
         }
     }
