@@ -3,7 +3,7 @@ from typing import Dict, List
 from tkinter.filedialog import askopenfile
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib import animation
-import matplotlib.pyplot as plt
+
 import tkinter as tk
 import numpy as np
 import sys
@@ -73,7 +73,7 @@ class UserInterface(object):
 
     # Default relative row height is based on having a 
     # small reset plot and back button below the plot.
-    def embed_plot(self, figure, row_heights: List[int] = [80, 4, 4]):
+    def embed_plot(self, figure: any, row_heights = [80, 4, 4]):
         canvas = FigureCanvasTkAgg(figure, master=self.container)
         canvas.get_tk_widget().grid(row=0, column=0)
         utility.set_grid_sizes(self.container, row_heights, [100])
@@ -441,6 +441,7 @@ class ValidationTasks(MainMenuButton):
 
     # Plots the selected type of rmse / comparison graph.
     def plot(self, type: str):
+        figure = None
         if type == "reference_comparison":
             # Obtain particle array for comparison from JSON file.
             particles = np.array(self.data["reference_comparison"]["particles"]).astype(int)
@@ -574,6 +575,7 @@ class CustomConditions(MainMenuButton):
             self.sim.simulate(print_time=True)
             self.sim.calculate_concentrations()
 
+        figure = None
         one_dimensional_case = False
         
         for i in [X, Y]:
@@ -606,11 +608,11 @@ class CustomConditions(MainMenuButton):
             self.axes.set_title("Time: " + str(self.sim.time_max) + "s")
 
         utility.create_button(self.ui.container, "Reset Plot", 1, 0,
-                            self.plot, pady=(5, 0), ipady=15,
-                            fg="black", bg="pink")
+                              self.plot, pady=(5, 0), ipady=15,
+                              fg="black", bg="pink")
         utility.create_button(self.ui.container, "Back", 2, 0,
-                            self.press, pady=(5, 0), ipady=15,
-                            fg="black", bg="pink")
+                              self.press, pady=(5, 0), ipady=15,
+                              fg="black", bg="pink")
         
         self.canvas = self.ui.embed_plot(figure)
         if self.sim.animated:

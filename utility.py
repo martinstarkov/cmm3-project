@@ -139,7 +139,7 @@ def create_root(geometry: str):
     return root
 
 
-def set_grid_sizes(container: any, rows: List[int] = [], columns: List[int] = [], 
+def set_grid_sizes(container: any, rows: any = [], columns: any = [], 
                    uniform_row: str = "", uniform_column: str = ""):
     """Sets the relative sizes of the rows and columns of a Tkinter container grid.
     
@@ -152,8 +152,8 @@ def set_grid_sizes(container: any, rows: List[int] = [], columns: List[int] = []
         need to add up to 100 as they are just relative weights.
     Args:
         container:      Tkinter container for which to modify the grid.
-        rows:           Relative row heights to use.         Defaults to [] (meaning ignored).
-        columns:        Relative column width to use.        Defaults to [] (meaning ignored).
+        rows:           List of relative row heights to use.     Defaults to [] (meaning ignored).
+        columns:        List of relative column width to use.    Defaults to [] (meaning ignored).
         uniform_row:    Key for rows of uniform height to use.   Defaults to "" (meaning ignored).
         uniform_column: Key for columns of uniform width to use. Defaults to "" (meaning ignored).
     """
@@ -180,7 +180,7 @@ def create_frame(parent_container: any, row: int, column: int, sticky: str = "NS
 
 def create_label(parent_container: any, text: str, 
                  row: int, column: int, sticky: str = "NSEW", 
-                 padx: int = 0, pady: int = 0, ipadx: int = 0, ipady: int = 0):
+                 padx: any = 0, pady: any = 0, ipadx: any = 0, ipady: any = 0):
     """Creates a Tkinter label for written text.
     Args:
         parent_container: Container in which to create the label.
@@ -196,14 +196,14 @@ def create_label(parent_container: any, text: str,
         Tkinter label widget.
     """
     label = tk.Label(parent_container, text=text, bg=background_color)
-    label.grid(row=row, column=column, padx=0, pady=0, ipadx=0, ipady=0, sticky=sticky)
+    label.grid(row=row, column=column, padx=padx, pady=pady, ipadx=ipadx, ipady=ipady, sticky=sticky)
     return label
 
 
 def create_entry(parent_container: any, default_value: any, 
                  row: int, column: int,
-                 sticky: str = "NSEW", padx: int = 0, pady: int = 0, 
-                 ipadx: int = 0, ipady: int = 0, **kwargs):
+                 sticky: str = "NSEW", padx: any = 0, pady: any = 0, 
+                 ipadx: any = 0, ipady: any = 0, **kwargs):
     """Creates a Tkinter entry box for retrieving user inputs.
     Args:
         parent_container: Container in which to create the entry.
@@ -277,8 +277,8 @@ def parse_entry(defaults: any, entry: any):
 
 
 def create_button(parent_container: any, text: str, row: int, column: int, 
-                  command: any, sticky: str = "NSEW", padx: int = 0, pady: int = 0, 
-                  ipadx: int = 0, ipady: int = 0, **kwargs):
+                  command: any, sticky: str = "NSEW", padx: any = 0, pady: any = 0, 
+                  ipadx: any = 0, ipady: any = 0, **kwargs):
     """
     Args:
         parent_container: Container in which to create the button.
