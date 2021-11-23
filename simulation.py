@@ -48,8 +48,8 @@ class Simulation(object):
             # coordinates and vectors of the velocity field respectively.
             self.velocity_coordinates, self.velocity_vectors = utility.read_data_file(self.velocity_field_path,
                                                                                       [0, 1], [2, 3])
-            assert self.velocity_coordinates is not None, "Could not retrieve velocity coordinates from data file"
-            assert self.velocity_vectors is not None,     "Could not retrieve velocity vectors from data file"
+            assert self.velocity_coordinates != None, "Could not retrieve velocity coordinates from data file"
+            assert self.velocity_vectors != None,     "Could not retrieve velocity vectors from data file"
             """
             A KDTree is a space partioning structure which allows the user to query any coordinate
             using its nearest neighbors. This allows for the retrieval of velocity vectors for the
